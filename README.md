@@ -25,11 +25,15 @@ i9-13900K Linux CPU，四组输入、每组三个 Jev 题型、两次计时：
 
 C++ 内存包含 Python 网关和原生子进程。选项全部一致，最大概率差0.00985，通过本次 ≤0.02门槛。Laya INT8 概率差0.4886，**拒绝作为默认配置**。这些测试不等于业务准确率或全局最优，见 [实验方法和限制](docs/optimization.md) 与 [公开汇总](reports/samples/linux-i9-13900k.json)。
 
-24项本地 API/运维测试及 C++ 真实推理、非法 token 恢复、请求隔离、卸载重载、上下文限制验证通过。GPU、Windows实机、对外HTTP和4B尚未实测：执行沙箱隔离宿主GPU/进程、禁止socket，4B两个分片不完整。Windows CI已配置，未远程运行。额外原生长输入4668tokens单题18.17秒，4096上限时明确拒绝。
+RTX 4090 上补测：Laya FP32 + TF32 / eager P50 **20.3 ms**，观测显存2.31 GiB；StartLux 0.8B C++ Q8 CUDA P50 **33.0 ms**，观测显存1.87 GiB。FP32/TF32通过相同数值门槛；BF16 eager/compile未通过，未作为默认。Tilelang候选P50 12.2 ms，但新输入形状编译让P95达到7.40秒，保留为可选项。完整条件见[GPU汇总](reports/samples/linux-rtx4090.json)。
+
+28项API/运维测试、真实C++非法token恢复、请求隔离、卸载重载、上下文限制通过。Ubuntu/Windows CI通过，Windows原生CPU构建、官方0.8B Q8推理、PowerShell启动、HTTP与运维API也已在GitHub runner通过；目标laptop性能仍须本机复测。Linux真实服务和桌面/手机宽度浏览器已验收。4B使用官方Q8，SHA256校验通过，8884已完成三个Jev题型smoke。4B CPU / 8线程P50 966.1 ms、峰值RSS5.63 GiB；CUDA P50 82.5 ms、观测显存5.64 GiB。两者使用相同Q8权重，概率差0.0000014；尚无原始BF16对照。
+
+0.8B CUDA另完成36,924-token单题输入，64K配置1.14秒、观测显存2.43 GiB；32K上限明确拒绝。同一模型CPU的4,668-token单题18.17秒。这些单次观测不代表长上下文准确率或完整延迟分布。
 
 ## Linux / 已有环境
 
-`config.toml` 是私有配置，未提交。模板使用项目内 `vendor/`、`models/`。已有权重直接填写 `python`、`source`、`path`，不会重复下载。相对路径以配置文件目录为基准。
+`config.toml` 是私有配置，未提交。CLI、模型服务和运维服务会读取项目 `.env` 中的 `SYSTEM1_ADMIN_KEY` / `SYSTEM1_API_KEY`；进程已有环境变量优先，文件不会作为shell执行。模板使用项目内 `vendor/`、`models/`。已有权重直接填写 `python`、`source`、`path`，不会重复下载。相对路径以配置文件目录为基准。
 
 ```bash
 cp config.example.toml config.toml
@@ -93,7 +97,7 @@ threads = 2
 
 ## Windows CPU laptop
 
-安装Python3.12、Git、uv；原生方案另需Visual Studio C++ Build Tools、CMake。无需WSL。保守模板：2线程、延迟加载、60秒空闲卸载、8192上下文，按RAM再调整。
+安装Python3.12、Git、uv；原生方案另需Visual Studio C++ Build Tools、CMake。无需WSL。保守模板：2线程、延迟加载、跨模型串行推理、每请求后卸载、8192上下文，按RAM再调整。
 
 ```powershell
 .\setup-runtime.ps1 cpu
@@ -104,11 +108,11 @@ Copy-Item config.windows-gguf.toml config.toml
 $env:SYSTEM1_NATIVE_BINARY = "$PWD\vendor\llama.cpp\build-cpu\bin\Release\system1-native.exe"
 $env:SYSTEM1_ADMIN_KEY = 'replace-with-your-admin-key'
 .\system1.ps1 doctor all
-.\system1.ps1 start startlux-0.8b
+.\system1.ps1 start all
 .\system1.ps1 dashboard start
 ```
 
-保留exe同目录DLL/CPU backend文件。无编译器时用 `config.windows-cpu.toml` 配合原始权重运行PyTorch FP32。低内存机器先运行一个模型，避免三模型同时推理。Windows推理和PowerShell脚本仍需目标设备验收。
+保留exe同目录DLL/CPU backend文件。无编译器时用 `config.windows-cpu.toml` 配合原始权重运行PyTorch FP32。低内存模板可以同时开启三个API端口，但通过共享文件锁一次只加载一个模型，请求后释放权重和原生子进程。每次重新加载会增加延迟，进程基础开销仍然存在；RAM充足时把 `serialize_inference`、`unload_after_request` 设为false，再选择空闲卸载时间。Windows原生CPU和PowerShell已在CI真实运行，laptop上的容量和性能仍需复测。
 
 ## 资源、上下文、日志
 
@@ -119,6 +123,8 @@ $env:SYSTEM1_ADMIN_KEY = 'replace-with-your-admin-key'
 | `threads` / `cpu_affinity` | 线程数与可选CPU核列表，需实测 |
 | `cpu_dtype="auto"` | PyTorch CPU有原生BF16标志才选择BF16，否则FP32 |
 | `preload=false` | 首请求加载 |
+| `serialize_inference` / `unload_after_request` | 低RAM时跨模型串行、每请求后卸载；降低常驻权重内存，增加加载延迟 |
+| `laya_gpu_dtype` / `laya_gpu_tf32` | Laya CUDA精度与TF32开关，默认FP32；启用加速前测试概率兼容 |
 | `idle_unload_seconds` | 空闲释放权重/原生子进程，0常驻 |
 | `context_length` | 请求上限，不得超过checkpoint原生限制 |
 | `max_batch_tokens` / `prefill_chunk` | PyTorch批量/前缀分块预算，不等于请求硬上限 |
@@ -146,7 +152,7 @@ python benchmark.py --model all --release-port 8881 --devices cpu cuda
 
 释放8881仅用于已授权的测试，无法定位监听PID或服务重启时失败。Docker/守护服务先用管理器停止，避免只停代理没有释放GPU。报告在 `reports/`，页面读取 `latest.json`；原始输出/失败日志保留。torch显存指标不代表C++显存，原生GPU另核对nvidia-smi/原生日志。
 
-`python publish.py` 创建授权的 `IamWWT/system1-ops` public并推送main，要求已提交、gh登录为IamWWT，不覆盖不同origin。当前沙箱GitHub网络受限，尚未创建或推送远程仓库。
+`python publish.py` 创建授权的 `IamWWT/system1-ops` public并推送main，要求已提交、gh登录为IamWWT，不覆盖不同origin。公开仓库已发布：[IamWWT/system1-ops](https://github.com/IamWWT/system1-ops)。
 
 Git访问失效代理127.0.0.1:7897时定位来源，单次直连无需改全局配置：
 

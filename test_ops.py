@@ -132,6 +132,7 @@ class Preflight(unittest.TestCase):
         import tempfile
         import pathlib
         item = config(DEFAULT_CONFIG)["startlux-4b"]
+        item["startlux_backend"] = "torch"
         with tempfile.TemporaryDirectory() as directory:
             item["path"] = directory
             pathlib.Path(directory, "model.safetensors.index.json").write_text(
