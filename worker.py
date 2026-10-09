@@ -215,6 +215,19 @@ class Engine:
         LOG.info("model_unloaded model=%s idle_seconds=%s", self.item["name"], self.item["idle_unload_seconds"])
 
     def infer(self, body, request_id):
+        if self.item.get("serialize_inference"):
+            from portable import file_lock
+            entered = False
+            try:
+                with file_lock(ROOT / "run" / "inference.lock"):
+                    entered = True
+                    return self._infer(body, request_id)
+            finally:
+                if not entered:
+                    self.lock.release()
+        return self._infer(body, request_id)
+
+    def _infer(self, body, request_id):
         start = time.monotonic()
         try:
             self.load()
@@ -274,8 +287,12 @@ class Engine:
             LOG.exception("inference_failed request_id=%s seconds=%.3f", request_id, time.monotonic() - start)
             raise
         finally:
-            self.last_used = time.monotonic()
-            self.lock.release()
+            try:
+                if self.item.get("unload_after_request") and self.model is not None:
+                    self.unload()
+            finally:
+                self.last_used = time.monotonic()
+                self.lock.release()
 
 
 def create_app(item, engine):

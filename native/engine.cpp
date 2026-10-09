@@ -9,10 +9,14 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#ifdef _WIN32
+#define NOMINMAX
+#include <windows.h>
+#endif
 
 using json = nlohmann::json;
 
-int main(int argc, char ** argv) {
+static int run_engine(int argc, char ** argv) {
     if (argc != 5) {
         std::cerr << "usage: system1-native MODEL CONTEXT THREADS GPU_LAYERS\n";
         return 2;
@@ -91,3 +95,22 @@ int main(int argc, char ** argv) {
     llama_backend_free();
     return result;
 }
+
+#ifdef _WIN32
+int wmain(int argc, wchar_t ** wide_argv) {
+    std::vector<std::string> arguments;
+    for (int i = 0; i < argc; ++i) {
+        const int size = WideCharToMultiByte(CP_UTF8, 0, wide_argv[i], -1, nullptr, 0, nullptr, nullptr);
+        if (!size) return 2;
+        std::string value(size, '\0');
+        WideCharToMultiByte(CP_UTF8, 0, wide_argv[i], -1, value.data(), size, nullptr, nullptr);
+        value.resize(size - 1);
+        arguments.push_back(std::move(value));
+    }
+    std::vector<char *> argv;
+    for (auto & argument : arguments) argv.push_back(argument.data());
+    return run_engine(argc, argv.data());
+}
+#else
+int main(int argc, char ** argv) { return run_engine(argc, argv); }
+#endif

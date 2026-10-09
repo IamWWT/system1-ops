@@ -30,7 +30,7 @@ def load(item):
         path.replace(path.with_suffix(".previous.log"))
     with path.open("ab", buffering=0) as output:
         process = subprocess.Popen(command, stdout=output, stderr=subprocess.STDOUT,
-                                   **({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt" else {}))
+                                   **({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}))
     snapshot(ROOT / "run" / (item["name"] + ".native.json"), {"pid": process.pid, "starttime": identity(process.pid)})
     deadline = time.monotonic() + item["startup_timeout"]
     base = f"http://127.0.0.1:{item['llama_port']}"
@@ -68,7 +68,8 @@ def load_stdio(item):
                str(item["threads"]), str(item["llama_gpu_layers"])]
     with path.open("ab", buffering=0) as output:
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=output,
-                                   text=True, encoding="utf-8", bufsize=1)
+                                   text=True, encoding="utf-8", bufsize=1,
+                                   **({"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}))
     snapshot(ROOT / "run" / (item["name"] + ".native.json"), {"pid": process.pid, "starttime": identity(process.pid)})
     replies = queue.Queue(maxsize=2)
 

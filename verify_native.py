@@ -5,7 +5,7 @@ from common import DEFAULT_CONFIG, config, preflight, prepare_runtime
 
 def main():
     item = config(DEFAULT_CONFIG)["startlux-0.8b"]
-    item.update(device="cpu", startlux_backend="gguf-stdio")
+    item.update(device="cpu", startlux_backend="gguf-stdio", unload_after_request=False)
     preflight(item)
     prepare_runtime(item)
     from worker import Engine

@@ -16,4 +16,7 @@ set_target_properties(system1-native PROPERTIES BUILD_RPATH "$ORIGIN" RUNTIME_OU
 
 if(WIN32)
   set_target_properties(system1-native PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${LLAMA_BUILD_DIR}/bin/Release")
+  if(MINGW)
+    target_link_options(system1-native PRIVATE -municode)
+  endif()
 endif()

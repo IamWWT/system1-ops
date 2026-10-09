@@ -26,7 +26,7 @@ jobs:
           $env:SYSTEM1_NATIVE_BINARY = "$PWD\vendor\llama.cpp\build-cpu\bin\Release\system1-native.exe"
           python verify_native.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          .\system1.ps1 start startlux-0.8b
+          .\system1.ps1 start startlux-0.8b --device cpu --context-length 8192
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           try {
             .\system1.ps1 smoke startlux-0.8b

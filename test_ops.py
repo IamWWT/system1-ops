@@ -197,6 +197,52 @@ class Preflight(unittest.TestCase):
                     cpu_model.decide.assert_not_called()
             self.assertFalse(engine.lock.locked())
 
+    def test_low_memory_profile_serializes_models_and_unloads_before_next_load(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from contextlib import ExitStack
+        from types import SimpleNamespace
+        import tempfile
+        import pathlib
+        active, peaks = set(), []
+        mutex = threading.Lock()
+        body = {"state": "x", "questions": {"q": {"type": "noul", "instructions": "True?"}}}
+
+        def decide(*args, **kwargs):
+            time.sleep(0.03)
+            return {"q": {"type": "noul", "noul": 0.8}}, {"input_tokens": 1, "output_tokens": 0}
+
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
+            stack.enter_context(patch("worker.ROOT", pathlib.Path(directory)))
+            engines = []
+            for name in ("one", "two"):
+                item = dict(config(DEFAULT_CONFIG)["startlux-0.8b"], name=name, device="cpu",
+                            serialize_inference=True, unload_after_request=True)
+                engine = Engine(item)
+                engine.device = "cpu"
+
+                def load(e=engine, n=name):
+                    with mutex:
+                        active.add(n)
+                        peaks.append(len(active))
+                    e.model = SimpleNamespace(decide=decide)
+
+                def unload(e=engine, n=name):
+                    with mutex:
+                        active.remove(n)
+                    e.model = None
+
+                stack.enter_context(patch.object(engine, "load", side_effect=load))
+                stack.enter_context(patch.object(engine, "unload", side_effect=unload))
+                engine.lock.acquire()
+                engines.append(engine)
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                futures = [pool.submit(engine.infer, body, "low-memory") for engine in engines]
+                for future in futures:
+                    self.assertEqual(future.result(timeout=5)["answers"]["q"]["noul"], 0.8)
+            self.assertEqual(max(peaks), 1)
+            self.assertEqual(active, set())
+            self.assertTrue(all(engine.model is None and not engine.lock.locked() for engine in engines))
+
 
 if __name__ == "__main__":
     unittest.main()

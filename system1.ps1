@@ -1,7 +1,4 @@
-param(
-    [Parameter(ValueFromRemainingArguments=$true)]
-    [string[]]$Arguments
-)
+$Arguments = @($args)
 $ErrorActionPreference = "Stop"
 $RuntimePython = $env:SYSTEM1_PYTHON
 if (-not $RuntimePython) {

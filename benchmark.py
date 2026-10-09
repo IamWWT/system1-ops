@@ -61,7 +61,7 @@ def run_worker(args):
     import torch
     native = item.get("startlux_backend", "torch").startswith("gguf")
     report = {"candidate": args.item.stem, "model": item["name"], "settings": {
-        k: item.get(k) for k in ("device", "threads", "cpu_dtype", "cpu_quantization", "laya_backend", "laya_gpu_dtype", "laya_gpu_tf32", "cuda_graphs", "window_length", "cpu_affinity", "startlux_backend")},
+        k: item.get(k) for k in ("device", "threads", "cpu_dtype", "cpu_quantization", "laya_backend", "laya_gpu_dtype", "laya_gpu_tf32", "serialize_inference", "unload_after_request", "cuda_graphs", "window_length", "cpu_affinity", "startlux_backend")},
         "status": "failed", "hardware": hardware()}
     if item["device"].startswith("cuda") and not (hardware()["gpus"] if native else torch.cuda.is_available()):
         report.update(status="skipped", reason="CUDA unavailable in this runtime")

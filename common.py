@@ -58,6 +58,7 @@ def config(path):
     for name, overrides in raw["models"].items():
         item = dict(cpu_dtype="auto", cpu_quantization="none", laya_backend="eager", cpu_affinity=[],
                     laya_gpu_dtype="fp32", laya_gpu_tf32=False,
+                    serialize_inference=False, unload_after_request=False,
                     attention="sdpa", fallback_eager=True, preload=True, torch_interop_threads=1,
                     startlux_backend="torch", gguf_file="", llama_server="", native_binary="", llama_port=18883,
                     llama_gpu_layers=0, llama_cache_type="f16",
