@@ -7,6 +7,7 @@ run/
 vendor/
 models/
 config.toml
+.env
 config.local*.toml
 evidence/
 reports/*

@@ -9,6 +9,17 @@ ROOT = pathlib.Path(__file__).resolve().parent
 DEFAULT_CONFIG = ROOT / "config.toml" if (ROOT / "config.toml").exists() else ROOT / "config.example.toml"
 
 
+def load_local_environment():
+    """Optional local credentials; caller environment wins, no shell evaluation."""
+    path = ROOT / ".env"
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        key, separator, value = line.partition("=")
+        if separator and key.strip() in ("SYSTEM1_ADMIN_KEY", "SYSTEM1_API_KEY"):
+            os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+
+
 def prepare_runtime(item):
     sys.path.insert(0, item["source"])
     sys.path.extend(item.get("dependency_paths", []))

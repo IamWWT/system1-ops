@@ -69,7 +69,7 @@ async function control(model, action) {
   } catch (error) { notice(error.message, true); }
 }
 $("request").value = JSON.stringify({ state: "我被重复扣款，请退还第二笔付款。", questions: { team: { type: "choice", instructions: "Which team handles this?", criteria: { billing: "Billing and refunds", technical: "Technical problems", other: "Other issues" } }, refund: { type: "noul", instructions: "Is a refund requested?" } } }, null, 2);
-$("connect").onclick = async () => { key = $("key").value; $("key").value = ""; await refresh(); await logs(); await reports(); };
+$("connect").onclick = async () => { key = $("key").value; $("key").value = ""; notice(""); await refresh(); await logs(); await reports(); };
 $("send").onclick = async () => {
   $("send").disabled = true;
   try { const body = JSON.parse($("request").value); const result = await api(`/ops/debug/${encodeURIComponent($("debugModel").value)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); $("debugMeta").textContent = `HTTP ${result.http_status} · ${result.latency_ms.toFixed(1)} ms`; $("response").textContent = JSON.stringify(result.body, null, 2); await refresh(); await logs(); }

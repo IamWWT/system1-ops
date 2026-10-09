@@ -10,7 +10,7 @@ import time
 import urllib.error
 import urllib.request
 
-from common import ROOT, DEFAULT_CONFIG, add_overrides, apply_overrides, config, preflight
+from common import ROOT, DEFAULT_CONFIG, add_overrides, apply_overrides, config, preflight, load_local_environment
 from portable import file_lock, identity, tail
 
 RUN = ROOT / "run"
@@ -128,6 +128,7 @@ def doctor(item):
 
 
 def main():
+    load_local_environment()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=["start", "stop", "restart", "status", "health", "smoke", "doctor", "logs", "config", "dashboard"])
     parser.add_argument("model", nargs="?", default="all")

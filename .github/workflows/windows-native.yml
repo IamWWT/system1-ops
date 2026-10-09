@@ -1,0 +1,47 @@
+name: Windows native CPU smoke
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install torch==2.12.0 --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install transformers==5.19.0 safetensors huggingface_hub pillow numpy httpx -r requirements-http.txt
+      - run: python bootstrap.py --sources
+      - run: python bootstrap.py --build-native cpu
+      - run: python bootstrap.py --models startlux-0.8b-q8 --revision 50adbd33032110de2454d01328cfb26a2ba4f113
+      - name: Configure and verify real native model
+        shell: pwsh
+        run: |
+          Copy-Item config.windows-gguf.toml config.toml
+          $env:SYSTEM1_NATIVE_BINARY = "$PWD\vendor\llama.cpp\build-cpu\bin\Release\system1-native.exe"
+          python verify_native.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .\system1.ps1 start startlux-0.8b
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          try {
+            .\system1.ps1 smoke startlux-0.8b
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $env:SYSTEM1_ADMIN_KEY = 'ci-local-admin'
+            .\system1.ps1 dashboard start
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $reply = Invoke-RestMethod http://127.0.0.1:8885/ops/state -Headers @{Authorization='Bearer ci-local-admin'}
+            if ($reply.models.Count -ne 3) { throw 'dashboard model registry mismatch' }
+          } finally {
+            .\system1.ps1 stop startlux-0.8b
+            .\system1.ps1 dashboard stop
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-native-logs
+          path: logs/
+          retention-days: 7
