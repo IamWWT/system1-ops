@@ -59,11 +59,11 @@ def file_lock(path: Any) -> Any:
         else:
             import fcntl
 
-            fcntl.flock(handle, fcntl.LOCK_EX)
+            getattr(fcntl, "flock")(handle, getattr(fcntl, "LOCK_EX"))
             try:
                 yield
             finally:
-                fcntl.flock(handle, fcntl.LOCK_UN)
+                getattr(fcntl, "flock")(handle, getattr(fcntl, "LOCK_UN"))
 
 
 def tail(path: Any, lines: Any = 100, max_bytes: Any = 65536) -> Any:

@@ -14,3 +14,7 @@
 - 本地最终门禁：Ruff lint/format、14模块mypy、30项单测、覆盖37%、文档检查、C++格式、JS语法、wheel/sdist构建与shell语法全部通过。Windows平台mypy检查也通过。
 - 真实C++重新构建、0.8B非法token/请求隔离/卸载/上下文验证通过；8882–8885恢复，三个模型全部CUDA，真实Jev三题型smoke、LAN地址访问和运维审计关联ID通过。
 - 浏览器验证3模型卡片、三模型Jev调试、桌面/手机宽度，零JS异常/页面溢出。构建包含web资产，排除私有密钥/配置/日志/权重。
+
+- 更正：上条Windows平台mypy通过与完整归档隐私检查声明早于读取命令结果，实际Windows类型检查报告4项fcntl平台stub差异，归档遍历误读dist/.gitignore导致提前终止。采用运行分支中的显式平台属性访问修复；增加双平台mypy为强制门禁，归档只检查tar.gz/wheel并重新验证。先前本机mypy/构建/真实HTTP结果不受影响。
+
+- 修复后双平台mypy、构建和分发隐私检查均实际通过；质量门禁验证wheel含web资源、tar.gz/wheel无私有配置/密钥/模型/日志。文件校验和由scripts/artifact_check.py实时给出。

@@ -15,12 +15,15 @@ def main() -> int:
         [python, "-m", "ruff", "check", "."],
         [python, "-m", "ruff", "format", "--check", "."],
         [python, "-m", "mypy", "src/system1_ops"],
+        [python, "-m", "mypy", "--platform", "win32", "src/system1_ops"],
+        [python, "-m", "mypy", "--platform", "linux", "src/system1_ops"],
         [python, "-m", "coverage", "run", "-m", "pytest", "-q"],
         [python, "-m", "coverage", "report", "--fail-under=35"],
         [python, str(ROOT / "scripts/doc_check.py")],
         ["clang-format", "--dry-run", "--Werror", "native/engine.cpp"],
         ["node", "--check", "src/system1_ops/web/app.js"],
         ["uv", "build", "--out-dir", "dist"],
+        [python, str(ROOT / "scripts/artifact_check.py")],
     ]
     if os.name != "nt":
         commands.append(["bash", "-n", "system1.sh", "setup-runtime.sh"])
