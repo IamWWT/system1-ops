@@ -1,0 +1,64 @@
+# 相对路径以本文件目录为基准。修改后 restart 生效。
+[defaults]
+host = "0.0.0.0"
+api_key_env = "SYSTEM1_API_KEY"  # 此环境变量为空时不启用认证
+device = "auto"                  # auto / cpu / cuda:0
+gpu_index = 0
+gpu_reserve_mb = 4096             # 为 8881 等已有服务保留的额外显存
+threads = 4
+cpu_dtype = "auto"
+cpu_quantization = "none"
+cpu_affinity = []
+laya_backend = "eager"
+preload = true
+context_length = 8192
+max_batch_tokens = 8192           # 限制单次前向的批量；不是上下文上限
+prefill_chunk = 1024
+cuda_graphs = false
+allow_slow_cuda = false           # StartLux CUDA 缺快核时 auto 回 CPU
+images = false
+strict_jev = true
+idle_unload_seconds = 300         # 无请求后释放模型；0 表示常驻
+max_body_bytes = 8388608
+max_questions = 32
+socket_timeout = 30
+startup_timeout = 300
+inference_timeout = 600
+log_max_bytes = 20971520
+log_backups = 5
+log_payloads = false              # true 会把请求与结果正文写入日志
+log_level = "INFO"
+
+[models.laya]
+kind = "laya"
+port = 8882
+python = "auto"
+source = "vendor/laya"
+path = "models/laya"
+gpu_required_mb = 4096
+context_length = 8192             # 接受的 state token 上限；窗口模式不会一次读满
+head_max_length = 192
+long_input = "window"            # window / reject；窗口覆盖全文，代价是多次推理
+window_length = 1024
+
+[models."startlux-0.8b"]
+kind = "startlux"
+port = 8883
+python = "auto"
+source = "vendor/startlux"
+path = "models/startlux-0.8b"
+gpu_required_mb = 6144
+context_length = 16384
+
+[models.startlux-4b]
+kind = "startlux"
+port = 8884
+python = "auto"
+source = "vendor/startlux"
+path = "models/startlux-4b"
+gpu_required_mb = 14336
+context_length = 16384
+
+[dashboard]
+host = "0.0.0.0"
+port = 8885
