@@ -14,3 +14,9 @@
 
 - 配置完整性比对通过：迁移前后模型/解释器/源/二进制路径等价，设备、线程、上下文和端口未改变，moves.json各目标都存在。首次检查误用系统Python未安装包而报ModuleNotFoundError，改用uv锁环境后实际通过；不把环境导入错误误报模型问题。
 - 主分支Linux/Windows统一门禁实际通过：https://github.com/IamWWT/system1-ops/actions/runs/37914525575 。本地及远端只剩main；Windows native新路径仍在编译CPU后端，完成前不登记通过。
+
+- Windows native真实迁移验收通过：https://github.com/IamWWT/system1-ops/actions/runs/37914345721 ，包含新.local/vendor/models路径、真实0.8B CPU原生构建/推理、PowerShell启动、管理API与模型重启。代码之后只有文档/日志artifact选项变化，主分支e8df116双平台门禁通过：https://github.com/IamWWT/system1-ops/actions/runs/37915093701 。
+- 关口结论：工程基线、需求走查/追踪、数据模型/架构、开发、测试、部署维护信息均齐备，本轮实现者检查通过；用户对目录观感的最终接受仍由用户复核。覆盖/laptop/Windows Laya/4B与旧版全机回退未演练继续明确保留。
+- 按用户单main/单tag要求，旧源码f5eb663已归档至.local/archives/v0.2.0/source-f5eb663.tar并记录SHA256，原私有配置与移动清单保留。旧tag移除后仍可按提交哈希回退。发布以最新v0.3.0及.local/products/v0.3.0/manifest.json为唯一产品依据。
+
+- 2026-10-09T18:06 完整模式组织实现已验证：33测试、双平台CI37915093701、Windows native37914345721、三模型HTTP/浏览器和模式文档审计通过。主分支仅main；产品交付标识v0.3.0，源提交与制品SHA256由.local/products/v0.3.0/manifest.json记录。
