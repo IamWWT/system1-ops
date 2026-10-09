@@ -52,4 +52,5 @@ jobs:
         with:
           name: windows-native-logs
           path: .local/logs/
+          include-hidden-files: true
           retention-days: 7

@@ -48,7 +48,7 @@ Windows使用同一Python门禁，不依赖bash/WSL。Linux提供scripts/quality
 
 ## 提交与分支
 
-在特性分支开发，type(scope):摘要；验证后合入main。基线用annotated tag固定，源码归档记录SHA256。当前项目门禁2–4合并到Linux/Windows CI；模型集成由Windows native workflow与宿主证据补足。
+仅保留main，type(scope):摘要；按小批验证提交。只有最新版本保留annotated tag，旧基线用提交哈希和不可变产品归档追溯。源码归档记录SHA256。当前项目门禁2–4合并到Linux/Windows CI；模型集成由Windows native workflow与宿主证据补足。
 
 ## 文档组织
 

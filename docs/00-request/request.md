@@ -83,3 +83,9 @@ references:
 ## 续接入口的联合写入白名单
 
 /home/wwt/Downloads/aigc/proj/frameworks/resume-system1-host.sh为此前本任务生成且用户已执行的续接入口。只调整其-C工作目录到system1-ops，避免后续会话误把frameworks集合当成本项目；父目录其他内容仍只读。
+
+## 分支与标签约定（用户新增）
+
+> 另外分支只保留一个主就行, tag也只要1个
+
+本仓最终只保留main和最新一个标签；旧基线由提交哈希与产品归档保留。不得为框架模板要求额外保留分支/标签，用户约定优先。

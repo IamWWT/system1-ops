@@ -89,7 +89,7 @@ JSON日志在.local/logs/<model>.log、dashboard.log；依赖启动在.console.l
 
 默认运行目录.local；SYSTEM1_STATE_DIR可指定外部运行目录，SYSTEM1_HOME定位源码工作区。配置中的相对路径以配置父目录解析；.local/.env只读取认证键。旧根配置兼容读取仅用于迁移，门禁要求最终归位。
 
-本机迁移清单在.local/migration/moves.json，原配置在.local/migration/config.pre-layout.toml。回退时先停止四服务，将清单中的目标移回原位置并恢复原配置，再使用v0.2.0 worktree。虚拟环境和.native-build不移动，因为解释器shebang和CMake记录绝对路径；移动须重建。
+本机迁移清单在.local/migration/moves.json，原配置在.local/migration/config.pre-layout.toml。回退时先停止四服务，将清单中的目标移回原位置并恢复原配置，再使用提交f5eb663 worktree。虚拟环境和.native-build不移动，因为解释器shebang和CMake记录绝对路径；移动须重建。
 
 ## 交接与产品归档
 
@@ -97,7 +97,7 @@ JSON日志在.local/logs/<model>.log、dashboard.log；依赖启动在.console.l
 
 ## 回退与基线
 
-在另一个worktree检出baseline/pre-engineering-fd8ada3可还原旧目录和入口，复制本机私有配置并指向既有权重/二进制。先停止当前项目服务，检验旧worktree路径与venv，再启动并smoke。禁止git reset --hard清理用户现场。新发布从验证标签构建源码归档并校验SHA256，数据/密钥不进入归档。
+在另一个worktree检出提交fd8ada3可还原旧目录和入口，复制本机私有配置并指向既有权重/二进制。先停止当前项目服务，检验旧worktree路径与venv，再启动并smoke。禁止git reset --hard清理用户现场。新发布从验证标签构建源码归档并校验SHA256，数据/密钥不进入归档。
 
 配置清单：[[07-ops/CMP-system1_IG_0.3.0]]。取舍：[[02-design/decisions/ADR-001-engineering_CD_0.2.0]]。
 
@@ -112,3 +112,7 @@ JSON日志在.local/logs/<model>.log、dashboard.log；依赖启动在.console.l
 | 版本 | 日期 | 记录入口 |
 |---|---|---|
 | 0.3.0 | 2026-10-09 | [[04-progress/2026-10-09-complete-engineering|过程记录]]；历史基线见[[04-progress/baselines]] |
+
+## 分支和标签
+
+按用户约定仅main和最新一个版本标签。旧版本回退用基线登记表中的提交哈希及本地产品归档，不依赖已删除的旧标签。

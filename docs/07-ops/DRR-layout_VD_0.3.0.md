@@ -25,7 +25,7 @@ System1 Ops位于frameworks/system1-ops，IamWWT维护；配置.local/config.tom
 
 ## 故障与回退边界
 
-回退源码为v0.2.0，文件逆向映射见.local/migration/moves.json。先停当前服务，逆向移动并恢复旧配置；源码用独立worktree，环境/二进制保持绝对路径，最后doctor/smoke。本次验证了备份、原/新配置解析一致、数据迁移和恢复启动；未实际切回旧版四服务，不称全量灾备演练通过。8881按此前用户要求保持停止。
+回退源码为提交f5eb663（原v0.2.0），文件逆向映射见.local/migration/moves.json。先停当前服务，逆向移动并恢复旧配置；源码用独立worktree，环境/二进制保持绝对路径，最后doctor/smoke。本次验证了备份、原/新配置解析一致、数据迁移和恢复启动；未实际切回旧版四服务，不称全量灾备演练通过。8881按此前用户要求保持停止。
 
 ## 参考文档
 
