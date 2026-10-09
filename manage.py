@@ -116,10 +116,13 @@ def stop(name):
 
 def doctor(item):
     native = preflight(item)
-    code = "import torch, transformers, fastapi, uvicorn; print('torch='+torch.__version__, 'transformers='+transformers.__version__, 'cuda='+str(torch.cuda.is_available()))"
-    env = os.environ.copy()
-    env["PYTHONPATH"] = os.pathsep.join([item["source"]] + item["dependency_paths"])
-    result = subprocess.run([item["python"], "-c", code], env=env, capture_output=True, text=True)
+    # Match worker import order: fallback packages follow this interpreter's own
+    # site-packages, otherwise a shared CPU torch can mask a CUDA installation.
+    code = ("import json,sys; from common import prepare_runtime; prepare_runtime(json.loads(sys.stdin.read())); "
+            "import torch,transformers,fastapi,uvicorn; print('torch='+torch.__version__, "
+            "'transformers='+transformers.__version__, 'torch_cuda='+str(torch.cuda.is_available()))")
+    result = subprocess.run([item["python"], "-c", code], input=json.dumps(item), cwd=ROOT,
+                            capture_output=True, text=True)
     if result.returncode:
         raise RuntimeError(result.stderr.strip())
     print(f"{item['name']}: checkpoint complete, native_context={native}; {result.stdout.strip()}")
