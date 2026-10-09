@@ -14,7 +14,7 @@ import time
 import urllib.error
 import uuid
 
-from common import DEFAULT_CONFIG, ROOT, add_overrides, config
+from common import DEFAULT_CONFIG, ROOT, add_overrides, config, load_local_environment
 from manage import LOGS, RUN, record, request, start, stop
 from portable import file_lock, hardware, tail
 
@@ -183,6 +183,7 @@ def create_dashboard(config_path=DEFAULT_CONFIG):
 
 
 def main():
+    load_local_environment()
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=pathlib.Path, default=DEFAULT_CONFIG)
     parser.add_argument("--model", default="dashboard")

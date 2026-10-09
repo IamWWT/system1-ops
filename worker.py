@@ -14,7 +14,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 
-from common import ROOT, add_overrides, apply_overrides, config, preflight, prepare_runtime
+from common import ROOT, add_overrides, apply_overrides, config, preflight, prepare_runtime, load_local_environment
 from portable import snapshot
 
 LOG = logging.getLogger("system1")
@@ -246,7 +246,20 @@ class Engine:
                         raise ValueError("images disabled by configuration")
                     from startlux_decision.model import load_image
                     images = [load_image(value, paths=False) for value in images]
-                answers, usage = self.model.decide(state, questions, images=images)
+                try:
+                    answers, usage = self.model.decide(state, questions, images=images)
+                except (RuntimeError, OSError):
+                    if a["device"] != "auto" or not self.device.startswith("cuda") or not a.get("startlux_backend", "torch").startswith("gguf"):
+                        raise
+                    LOG.exception("native CUDA inference failed; retrying this request once on CPU")
+                    self.unload()
+                    self.device = "cpu"
+                    self.reason = "native CUDA inference failure; CPU fallback"
+                    a["llama_gpu_layers"] = 0
+                    self._load_model()
+                    self.loaded_at = time.time()
+                    self.model.max_length = budget
+                    answers, usage = self.model.decide(state, questions, images=images)
                 result = {"answers": answers, "usage": usage}
             result["model"] = a["name"]
             self.metrics.update(requests=self.metrics["requests"] + 1,
@@ -389,6 +402,7 @@ def create_app(item, engine):
 
 
 def main():
+    load_local_environment()
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True)
     ap.add_argument("--model", required=True)

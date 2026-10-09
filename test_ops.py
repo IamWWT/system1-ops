@@ -170,6 +170,33 @@ class Preflight(unittest.TestCase):
                 engine.infer({}, "test")
         self.assertFalse(engine.lock.locked())
 
+    def test_native_auto_failure_retries_cpu_but_forced_cuda_does_not(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock
+        body = {"state": "x", "questions": {"q": {"type": "noul", "instructions": "True?"}}}
+        for device in ("auto", "cuda:0"):
+            item = dict(config(DEFAULT_CONFIG)["startlux-0.8b"], device=device, startlux_backend="gguf-stdio")
+            engine = Engine(item)
+            engine.device = "cuda:0"
+            engine.model = SimpleNamespace(decide=Mock(side_effect=RuntimeError("native decode failed")))
+            cpu_model = SimpleNamespace(decide=Mock(return_value=({"q": {"type": "noul", "noul": 0.8}},
+                                                                 {"input_tokens": 1, "output_tokens": 0})))
+
+            def load_cpu():
+                self.assertEqual(engine.device, "cpu")
+                self.assertEqual(item["llama_gpu_layers"], 0)
+                engine.model = cpu_model
+
+            engine.lock.acquire()
+            with patch.object(engine, "load"), patch.object(engine, "unload"), patch.object(engine, "_load_model", side_effect=load_cpu):
+                if device == "auto":
+                    self.assertEqual(engine.infer(body, "native-fallback")["answers"]["q"]["noul"], 0.8)
+                else:
+                    with self.assertRaisesRegex(RuntimeError, "native decode failed"):
+                        engine.infer(body, "native-forced-cuda")
+                    cpu_model.decide.assert_not_called()
+            self.assertFalse(engine.lock.locked())
+
 
 if __name__ == "__main__":
     unittest.main()
