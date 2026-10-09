@@ -1,0 +1,29 @@
+{
+  "repository": "https://github.com/IamWWT/dsh-agent-presets",
+  "revision": "74dfcd1270675713853c5f87e798ed9b5f7acb25",
+  "source": "modes/engineering/standards",
+  "files": {
+    "README.md": "23fcc86628da27ca9c6bce0d07c08f23ad25806da908c1ebe85570cbb73ebfeb",
+    "change-management.md": "5f8f7fc1b9c41a0e0858918293c8b6159cfab273b386130a2ca59d6eabd3bb9d",
+    "code-style.md": "c2542e4fd0daf011e1d02434bcc092d9a9005048177edb1a354667c76632766d",
+    "configuration-management.md": "d46c1328a90b7d4540882bb0bb62b49a3db6eb6c35c04b4c0eaa349affd30591",
+    "documentation.md": "f1d00691e341873609381f48e633c3c3c44945ff1e8c2c085ecd4b401a10b919",
+    "enterprise/README.md": "7e593767b0e14e0f79205d50097a68ad7c092f48edc99687f25f6c5ec4c6d5a3",
+    "enterprise/_inbox/README.md": "6bed7cb27c51ddc2162bc8b66d4d9d24aee17d057a2295e898700975b913dd59",
+    "interfaces.md": "6ce9ba097f49238c13e0af6ddb12b991fea381c5a1fc8a48b75e9902075974da",
+    "languages/go.md": "2cff362ac26f145c1118e79cc0d4caee1de46f70a20e8a9a50849921a1b870ae",
+    "languages/java.md": "344427beef3243aef02132ddc059cb90be89f81bac2878e2fc0c2bd19c876c04",
+    "languages/node.md": "7bfc990c5f7d945b21d2aa66c21fe48b26b6cb6d538da779aeeffacbe8b32c1b",
+    "languages/python.md": "f135f7276e579960478d11ebd5cdf1b8880d0107000e96b1da98a6a0bc346034",
+    "languages/rust.md": "c65f20bcbd9975c8ba0031e42569d2e123cc3c03314212c6709fccf58121aac5",
+    "non-functional.md": "18b0399ad9dc607023089e92a434a2cc5f1d6df4bcd2d2e2619179191f3383f4",
+    "observability.md": "4f12e919523229de5a45e1340382ed91e485b009a6b1f5a44dc7d08cf722cae3",
+    "performance.md": "89bcbdb489bcfa94c39c64435415dc8358f13afc498529b0226e630dff7aa0a8",
+    "process.md": "e58eded8b96e10912b248ebb6064cb047f400fe801cdcd1fa290293c9efa8b9d",
+    "quality-gates.md": "50506212560165ef5290f3ea56ed7b27f67bc89afb78714863634aca9125d485",
+    "reliability.md": "8a4a3aa70c2d66222019105c09b8650d1c157f903d3db99afda00b011eb6a9b5",
+    "security.md": "56406db1d91f7318470277675621a816b9a1c3dca5a6de03803efb99582ad22e",
+    "testing.md": "f11e66e3dbc2898bf290f8a012ae391bf5702498bc2529005027cffada13164d",
+    "troubleshooting.md": "c9d3470f7f4c53ecb76e4eaa802e93460e3fc45a289ad78d09eaeee90e22bac1"
+  }
+}

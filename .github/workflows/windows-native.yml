@@ -22,7 +22,7 @@ jobs:
       - name: Configure and verify real native model
         shell: pwsh
         run: |
-          Copy-Item config.windows-gguf.toml config.toml
+          Copy-Item configs/windows-gguf.toml config.toml
           $env:SYSTEM1_NATIVE_BINARY = "$PWD\vendor\llama.cpp\build-cpu\bin\Release\system1-native.exe"
           python verify_native.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

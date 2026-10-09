@@ -6,5 +6,5 @@ if (-not $RuntimePython) {
     if (Test-Path $LocalPython) { $RuntimePython = $LocalPython }
     else { $RuntimePython = "python" }
 }
-& $RuntimePython (Join-Path $PSScriptRoot "manage.py") @Arguments
+& $RuntimePython (Join-Path $PSScriptRoot "scripts\launch.py") manage @Arguments
 exit $LASTEXITCODE

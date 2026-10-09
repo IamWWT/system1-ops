@@ -7,4 +7,4 @@ if [[ -z "$RUNTIME_PYTHON" ]]; then
   elif [[ -x "$SCRIPT_DIR/../laya/.venv/bin/python" ]]; then RUNTIME_PYTHON="$SCRIPT_DIR/../laya/.venv/bin/python"
   else RUNTIME_PYTHON="python3"; fi
 fi
-exec "$RUNTIME_PYTHON" "$SCRIPT_DIR/manage.py" "$@"
+exec "$RUNTIME_PYTHON" "$SCRIPT_DIR/scripts/launch.py" manage "$@"

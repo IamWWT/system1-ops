@@ -1,14 +1,15 @@
 // One long-lived llama.cpp instance. JSONL pipes preserve the Jev token readout;
 // HTTP, tokenization, and calibrated decision formatting remain in the gateway.
-#include "llama.h"
-#include "ggml-backend.h"
-#include "nlohmann/json.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#include "ggml-backend.h"
+#include "llama.h"
+#include "nlohmann/json.hpp"
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
@@ -16,13 +17,13 @@
 
 using json = nlohmann::json;
 
-static int run_engine(int argc, char ** argv) {
+static int run_engine(int argc, char** argv) {
     if (argc != 5) {
         std::cerr << "usage: system1-native MODEL CONTEXT THREADS GPU_LAYERS\n";
         return 2;
     }
-    llama_model * model = nullptr;
-    llama_context * ctx = nullptr;
+    llama_model* model = nullptr;
+    llama_context* ctx = nullptr;
     llama_batch batch = {};
     bool allocated = false;
     int result = 0;
@@ -58,8 +59,10 @@ static int run_engine(int argc, char ** argv) {
                 auto letters = request.at("letters").get<std::vector<llama_token>>();
                 if (tokens.empty() || tokens.size() > llama_n_ctx(ctx) || letters.empty() || letters.size() > 26)
                     throw std::runtime_error("invalid token/letter count");
-                for (auto token : tokens) if (token < 0 || token >= vocab) throw std::runtime_error("invalid input token");
-                for (auto token : letters) if (token < 0 || token >= vocab) throw std::runtime_error("invalid letter token");
+                for (auto token : tokens)
+                    if (token < 0 || token >= vocab) throw std::runtime_error("invalid input token");
+                for (auto token : letters)
+                    if (token < 0 || token >= vocab) throw std::runtime_error("invalid letter token");
                 llama_memory_clear(llama_get_memory(ctx), true);
                 for (size_t offset = 0; offset < tokens.size(); offset += cp.n_batch) {
                     batch.n_tokens = std::min(size_t(cp.n_batch), tokens.size() - offset);
@@ -72,7 +75,7 @@ static int run_engine(int argc, char ** argv) {
                     }
                     if (llama_decode(ctx, batch) != 0) throw std::runtime_error("native decode failed");
                 }
-                const auto * logits = llama_get_logits_ith(ctx, -1);
+                const auto* logits = llama_get_logits_ith(ctx, -1);
                 if (!logits) throw std::runtime_error("missing logits");
                 std::vector<float> output;
                 for (auto token : letters) {
@@ -80,11 +83,11 @@ static int run_engine(int argc, char ** argv) {
                     output.push_back(logits[token]);
                 }
                 std::cout << json({{"logits", output}}).dump() << std::endl;
-            } catch (const std::exception & error) {
+            } catch (const std::exception& error) {
                 std::cout << json({{"error", error.what()}}).dump() << std::endl;
             }
         }
-    } catch (const std::exception & error) {
+    } catch (const std::exception& error) {
         std::cerr << "fatal: " << error.what() << '\n';
         std::cout << json({{"error", error.what()}}).dump() << std::endl;
         result = 1;
@@ -97,7 +100,7 @@ static int run_engine(int argc, char ** argv) {
 }
 
 #ifdef _WIN32
-int wmain(int argc, wchar_t ** wide_argv) {
+int wmain(int argc, wchar_t** wide_argv) {
     std::vector<std::string> arguments;
     for (int i = 0; i < argc; ++i) {
         const int size = WideCharToMultiByte(CP_UTF8, 0, wide_argv[i], -1, nullptr, 0, nullptr, nullptr);
@@ -107,10 +110,10 @@ int wmain(int argc, wchar_t ** wide_argv) {
         value.resize(size - 1);
         arguments.push_back(std::move(value));
     }
-    std::vector<char *> argv;
-    for (auto & argument : arguments) argv.push_back(argument.data());
+    std::vector<char*> argv;
+    for (auto& argument : arguments) argv.push_back(argument.data());
     return run_engine(argc, argv.data());
 }
 #else
-int main(int argc, char ** argv) { return run_engine(argc, argv); }
+int main(int argc, char** argv) { return run_engine(argc, argv); }
 #endif
