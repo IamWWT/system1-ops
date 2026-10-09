@@ -8,7 +8,7 @@ case "$BACKEND" in cpu|cu130|cu126) ;; *) echo '用法: setup-runtime.sh cpu|cu1
 export UV_CACHE_DIR="$SCRIPT_DIR/.uv-cache"
 RUNTIME_DIR="$SCRIPT_DIR/.venv-$BACKEND"
 if [[ ! -x "$RUNTIME_DIR/bin/python" ]]; then uv venv "$RUNTIME_DIR" --python 3.12; fi
-uv pip install --python "$RUNTIME_DIR/bin/python" 'torch>=2.13,<2.15' torchvision \
+uv pip install --python "$RUNTIME_DIR/bin/python" 'torch>=2.10,<2.15' torchvision \
   --index-url "https://download.pytorch.org/whl/$BACKEND"
 uv pip install --python "$RUNTIME_DIR/bin/python" 'transformers==5.19.0' safetensors \
   huggingface_hub pillow numpy -r "$SCRIPT_DIR/requirements-http.txt"

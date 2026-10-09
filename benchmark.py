@@ -14,7 +14,7 @@ import threading
 import time
 
 from common import DEFAULT_CONFIG, ROOT, config, preflight, prepare_runtime
-from portable import hardware, snapshot
+from portable import hardware, snapshot, gpu_process_memory
 
 
 def fixtures(preset):
@@ -54,14 +54,14 @@ def compatibility(reference, candidate):
 
 
 def run_worker(args):
-    import psutil
     item = json.loads(args.item.read_text(encoding="utf-8"))
     prepare_runtime(item)
+    import psutil
     from worker import Engine
     import torch
     native = item.get("startlux_backend", "torch").startswith("gguf")
     report = {"candidate": args.item.stem, "model": item["name"], "settings": {
-        k: item.get(k) for k in ("device", "threads", "cpu_dtype", "cpu_quantization", "laya_backend", "cuda_graphs", "window_length", "cpu_affinity", "startlux_backend")},
+        k: item.get(k) for k in ("device", "threads", "cpu_dtype", "cpu_quantization", "laya_backend", "laya_gpu_dtype", "laya_gpu_tf32", "cuda_graphs", "window_length", "cpu_affinity", "startlux_backend")},
         "status": "failed", "hardware": hardware()}
     if item["device"].startswith("cuda") and not (hardware()["gpus"] if native else torch.cuda.is_available()):
         report.update(status="skipped", reason="CUDA unavailable in this runtime")
@@ -109,10 +109,12 @@ def run_worker(args):
         elapsed = [value["ms"] for value in times]
         cpu_finished = process.cpu_times()
         child_cpu_seconds = sum(c.cpu_times().user + c.cpu_times().system for c in process.children(recursive=True))
+        gpu_resident = gpu_process_memory({process.pid, *(c.pid for c in process.children(recursive=True))}) if engine.device.startswith("cuda") else None
         report.update(status="ok", actual_device=engine.device, precision=engine.precision, actual_backend=engine.backend,
                       p50_ms=statistics.median(elapsed), p95_ms=sorted(elapsed)[max(0, int(len(elapsed) * 0.95 + 0.999) - 1)],
                       timings=times, outputs=outputs, peak_rss_mb=peak[0] / 1024**2,
                       cpu_seconds=(cpu_finished.user + cpu_finished.system - cpu_started.user - cpu_started.system + child_cpu_seconds),
+                      nvidia_resident_mb=gpu_resident,
                       cuda_peak_allocated_mb=torch.cuda.max_memory_allocated() / 1024**2 if engine.device.startswith("cuda") and not native else None,
                       cuda_peak_reserved_mb=torch.cuda.max_memory_reserved() / 1024**2 if engine.device.startswith("cuda") and not native else None)
     except Exception as error:

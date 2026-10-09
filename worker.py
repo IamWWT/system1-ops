@@ -157,6 +157,12 @@ class Engine:
             from startlux_policy import cpu_dtype
             os.environ["LAYA_CPU_AMP"] = "bf16" if cpu_dtype(a["cpu_dtype"]) == "bf16" else ""
             self.model = load(a["path"], device=self.device, backend="eager")
+            if self.device.startswith("cuda"):
+                selected = {"fp32": torch.float32, "bf16": torch.bfloat16, "fp16": torch.float16}[a["laya_gpu_dtype"]]
+                self.model.dtype = selected
+                self.model.amp_enabled = selected != torch.float32
+                torch.backends.cuda.matmul.allow_tf32 = a["laya_gpu_tf32"]
+                torch.backends.cudnn.allow_tf32 = a["laya_gpu_tf32"]
             self.model.model.encoder.config._attn_implementation = a["attention"]
             if self.device == "cpu" and a.get("cpu_quantization") == "int8":
                 self.model.model.encoder = torch.ao.quantization.quantize_dynamic(

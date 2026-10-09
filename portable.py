@@ -109,6 +109,23 @@ def hardware():
     return result
 
 
+def gpu_process_memory(pids):
+    """Observed resident GPU memory, not a peak or a PyTorch allocator metric."""
+    try:
+        reply = subprocess.run(["nvidia-smi", "--query-compute-apps=pid,used_gpu_memory", "--format=csv,noheader,nounits"],
+                               capture_output=True, text=True, timeout=3)
+        if reply.returncode:
+            return None
+        total = 0
+        for line in reply.stdout.splitlines():
+            pid, memory = (value.strip() for value in line.split(","))
+            if int(pid) in pids:
+                total += int(memory)
+        return total
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return None
+
+
 def snapshot(path, value):
     path = pathlib.Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)

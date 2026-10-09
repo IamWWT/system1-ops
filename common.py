@@ -46,6 +46,7 @@ def config(path):
     ports = set()
     for name, overrides in raw["models"].items():
         item = dict(cpu_dtype="auto", cpu_quantization="none", laya_backend="eager", cpu_affinity=[],
+                    laya_gpu_dtype="fp32", laya_gpu_tf32=False,
                     attention="sdpa", fallback_eager=True, preload=True, torch_interop_threads=1,
                     startlux_backend="torch", gguf_file="", llama_server="", native_binary="", llama_port=18883,
                     llama_gpu_layers=0, llama_cache_type="f16",
@@ -74,6 +75,8 @@ def config(path):
             raise ValueError(f"{name}: invalid CPU precision / quantization")
         if item["laya_backend"] not in ("eager", "auto", "compile", "tilelang"):
             raise ValueError(f"{name}: invalid Laya backend")
+        if item["laya_gpu_dtype"] not in ("fp32", "bf16", "fp16"):
+            raise ValueError(f"{name}: invalid Laya GPU precision")
         if item["attention"] not in ("sdpa", "eager"):
             raise ValueError(f"{name}: invalid attention")
         if item["startlux_backend"] not in ("torch", "gguf", "gguf-stdio"):

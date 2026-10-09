@@ -111,7 +111,11 @@ class API(unittest.IsolatedAsyncioTestCase):
         engine.last_used -= 1
         app = create_app(item, engine)
         async with app.router.lifespan_context(app):
-            await asyncio.sleep(0.04)
+            deadline = asyncio.get_running_loop().time() + 2
+            while engine.model is not None or engine.lock.locked():
+                if asyncio.get_running_loop().time() >= deadline:
+                    break
+                await asyncio.sleep(0.01)
             self.assertIsNone(engine.model)
             self.assertFalse(engine.lock.locked())
 
