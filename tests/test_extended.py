@@ -70,7 +70,7 @@ class Portable(unittest.TestCase):
             git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-m", "initial")
             first = git("rev-parse", "HEAD")
             with (
-                patch.object(bootstrap, "ROOT", root / "project"),
+                patch.object(bootstrap, "STATE", root / "project/.local"),
                 patch.dict(bootstrap.SOURCES, {"fixture": (str(upstream), first)}),
             ):
                 checkout = bootstrap.source("fixture")

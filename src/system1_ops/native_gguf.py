@@ -8,7 +8,7 @@ import threading
 import time
 from typing import Any
 
-from .common import ROOT
+from .common import STATE
 from .portable import identity, probe_port, snapshot
 
 
@@ -45,8 +45,8 @@ def load(item: Any) -> Any:
         "--cache-type-v",
         item["llama_cache_type"],
     ]
-    path = ROOT / "logs" / (item["name"] + ".native.log")
-    path.parent.mkdir(exist_ok=True)
+    path = STATE / "logs" / (item["name"] + ".native.log")
+    path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists():
         path.replace(path.with_suffix(".previous.log"))
     with path.open("ab", buffering=0) as output:
@@ -63,7 +63,7 @@ def load(item: Any) -> Any:
                 else {}
             ),
         )
-    snapshot(ROOT / "run" / (item["name"] + ".native.json"), {"pid": process.pid, "starttime": identity(process.pid)})
+    snapshot(STATE / "run" / (item["name"] + ".native.json"), {"pid": process.pid, "starttime": identity(process.pid)})
     deadline = time.monotonic() + item["startup_timeout"]
     base = f"http://127.0.0.1:{item['llama_port']}"
     try:
@@ -89,8 +89,8 @@ def load(item: Any) -> Any:
 def load_stdio(item: Any) -> Any:
     from startlux_decision.gguf_server import GGUFDecision
 
-    path = ROOT / "logs" / (item["name"] + ".native.log")
-    path.parent.mkdir(exist_ok=True)
+    path = STATE / "logs" / (item["name"] + ".native.log")
+    path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists() and path.stat().st_size >= item["log_max_bytes"]:
         for number in range(item["log_backups"] - 1, 0, -1):
             older = path.with_name(path.name + f".{number}")
@@ -116,7 +116,7 @@ def load_stdio(item: Any) -> Any:
             **({"creationflags": getattr(subprocess, "CREATE_NO_WINDOW")} if os.name == "nt" else {}),
         )
     assert process.stdin is not None and process.stdout is not None
-    snapshot(ROOT / "run" / (item["name"] + ".native.json"), {"pid": process.pid, "starttime": identity(process.pid)})
+    snapshot(STATE / "run" / (item["name"] + ".native.json"), {"pid": process.pid, "starttime": identity(process.pid)})
     replies: queue.Queue[dict[str, Any]] = queue.Queue(maxsize=2)
 
     def read() -> Any:

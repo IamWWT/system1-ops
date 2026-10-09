@@ -15,7 +15,7 @@ import threading
 import time
 from typing import Any
 
-from .common import DEFAULT_CONFIG, ROOT, config, preflight, prepare_runtime
+from .common import DEFAULT_CONFIG, ROOT, STATE, config, preflight, prepare_runtime
 from .portable import gpu_process_memory, hardware, snapshot
 
 
@@ -244,7 +244,7 @@ def sweep(args: Any) -> Any:
     selected = list(items.values()) if args.model == "all" else [items[args.model]]
     results = []
     stamp = time.strftime("%Y%m%d-%H%M%S")
-    directory = ROOT / "reports" / stamp
+    directory = STATE / "reports" / stamp
     directory.mkdir(parents=True)
     repeats = args.repeats or (2 if args.preset == "quick" else 5)
     for item in selected:
@@ -291,7 +291,7 @@ def sweep(args: Any) -> Any:
         reference = None
         for tag, settings in candidates:
             name = item["name"] + "-" + tag
-            input_path = ROOT / "run" / (name + ".json")
+            input_path = STATE / "run" / (name + ".json")
             output_path = directory / (name + ".json")
             snapshot(input_path, settings)
             print(f"benchmark {name}", flush=True)
@@ -395,7 +395,7 @@ def sweep(args: Any) -> Any:
         "limitations": "Synthetic numerical comparison; no Windows or GPU claim without a matching measured row. Recommendations are host-specific.",
     }
     snapshot(directory / "summary.json", report)
-    snapshot(ROOT / "reports" / "latest.json", report)
+    snapshot(STATE / "reports" / "latest.json", report)
     print(f"Report: {directory / 'summary.json'}", flush=True)
     return report
 

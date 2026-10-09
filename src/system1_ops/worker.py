@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from .common import (
-    ROOT,
+    STATE,
     add_overrides,
     apply_overrides,
     bearer_matches,
@@ -267,7 +267,7 @@ class Engine:
 
             entered = False
             try:
-                with file_lock(ROOT / "run" / "inference.lock"):
+                with file_lock(STATE / "run" / "inference.lock"):
                     entered = True
                     return self._infer(body, request_id)
             finally:
@@ -520,8 +520,8 @@ def main() -> Any:
     item = apply_overrides(config(args.config)[args.model], args)
     preflight(item)
     prepare_runtime(item)
-    logs = ROOT / "logs"
-    logs.mkdir(exist_ok=True)
+    logs = STATE / "logs"
+    logs.mkdir(parents=True, exist_ok=True)
     configure_logging(logs / (args.model + ".log"), item)
     sys.stdout, sys.stderr = LogStream(logging.INFO), LogStream(logging.WARNING)
     logging.captureWarnings(True)
@@ -543,7 +543,7 @@ def main() -> Any:
     if item["preload"]:
         engine.lock.acquire()
         engine.infer(demo, "startup-warmup")
-    snapshot(ROOT / "run" / (args.model + ".effective.json"), item)
+    snapshot(STATE / "run" / (args.model + ".effective.json"), item)
     import uvicorn
 
     uvicorn.run(

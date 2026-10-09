@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from typing import Any
 
-from .common import ROOT
+from .common import ROOT, STATE
 
 SOURCES = {
     "laya": ("https://github.com/NandhaKishorM/laya.git", "1adc59f7e371deb601fcfa18a14e25db238addcc"),
@@ -25,7 +25,7 @@ WEIGHTS = {
 
 def source(name: Any) -> Any:
     url, revision = SOURCES[name]
-    directory = ROOT / "vendor" / name
+    directory = STATE / "vendor" / name
     created = not directory.exists()
     if created:
         subprocess.run(["git", "clone", "--filter=blob:none", "--no-checkout", url, str(directory)], check=True)
@@ -66,7 +66,7 @@ def main() -> Any:
                     "--revision",
                     args.revision,
                     "--local-dir",
-                    str(ROOT / "models" / name),
+                    str(STATE / "models" / name),
                 ],
                 check=True,
             )
@@ -109,7 +109,8 @@ def main() -> Any:
             check=True,
         )
         subprocess.run(["cmake", "--build", str(bridge), "--config", "Release", "-j", "4"], check=True)
-    local = ROOT / "config.toml"
+    STATE.mkdir(parents=True, exist_ok=True)
+    local = STATE / "config.toml"
     if not local.exists():
         shutil.copyfile(ROOT / "configs" / "example.toml", local)
 

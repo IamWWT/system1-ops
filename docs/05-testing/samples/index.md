@@ -1,5 +1,5 @@
 ---
-title: 06-experience 导航
+title: 05-testing/samples 导航
 type: index
 status: active
 version: 0.3.0
@@ -10,9 +10,11 @@ references:
   - docs/FILE_INDEX.md
 ---
 
-# 06-experience 导航
+# 05-testing/samples 导航
 
 > 关联: [[FILE_INDEX|全库文件索引]]
 
 
-- [[06-experience/2026-10-09-layout|2026-10-09-layout.md]]
+- [linux-i9-13900k.json](linux-i9-13900k.json)
+
+- [linux-rtx4090.json](linux-rtx4090.json)

@@ -2,7 +2,7 @@
 title: 项目术语表
 type: reference
 status: active
-version: 0.2.0
+version: 0.3.0
 date: 2026-10-09
 owner: IamWWT
 applies_to: System1 Ops
@@ -12,13 +12,13 @@ references:
 
 # 项目术语表
 
-> 版本: 0.2.0 | 状态: Active
+> 版本: 0.3.0 | 状态: Active
 > 适用范围: System1 Ops
 > 关联: [[FILE_INDEX|全库索引]]
 
 | 术语 | 含义与权威入口 |
 |---|---|
-| Jev | 结构化决策请求/响应，见[[02-design/SAD-system1_HD_0.2.0]] |
+| Jev | 结构化决策请求/响应，见[[02-design/SAD-system1_HD_0.3.0]] |
 | noul | Jev二元概率题型，使用上游校准 |
 | GGUF / Q8_0 | 原生模型格式/量化形式，不代表已验证通用准确率 |
 | gateway | FastAPI模型公共入口，不执行生成式聊天 |

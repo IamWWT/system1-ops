@@ -1,4 +1,4 @@
-# 相对路径以本文件目录为基准。修改后 restart 生效。
+# 复制到 .local/config.toml；相对路径以该配置文件目录为基准。修改后 restart 生效。
 [defaults]
 host = "0.0.0.0"
 api_key_env = "SYSTEM1_API_KEY"  # 此环境变量为空时不启用认证

@@ -2,7 +2,7 @@
 title: 全库文件索引
 type: index
 status: active
-version: 0.2.0
+version: 0.3.0
 date: 2026-10-09
 owner: IamWWT
 applies_to: System1 Ops
@@ -12,70 +12,130 @@ references:
 
 # 全库文件索引
 
-> 版本: 0.2.0 | 状态: Active
-> 适用范围: System1 Ops
-> 关联: [[FILE_INDEX|全库索引]]
+> 关联: [[FILE_INDEX|全库文件索引]]
 
-## 文档清单
-
-- [[AGENTS|AGENTS.md]]
-- [[CHANGELOG|CHANGELOG.md]]
-- [[MEMORY|MEMORY.md]]
-- [[README|README.md]]
+- [.clang-format](../.clang-format)
+- [.env.example](../.env.example)
+- [.gitattributes](../.gitattributes)
+- [.github/workflows/test.yml](../.github/workflows/test.yml)
+- [.github/workflows/windows-native.yml](../.github/workflows/windows-native.yml)
+- [.gitignore](../.gitignore)
+- [.python-version](../.python-version)
+- [AGENTS.md](../AGENTS.md)
+- [CHANGELOG.md](../CHANGELOG.md)
+- [LICENSE](../LICENSE)
+- [MEMORY.md](../MEMORY.md)
+- [README.md](../README.md)
+- [configs/example.toml](../configs/example.toml)
+- [configs/requirements-http.txt](../configs/requirements-http.txt)
+- [configs/windows-cpu.toml](../configs/windows-cpu.toml)
+- [configs/windows-gguf.toml](../configs/windows-gguf.toml)
 - [[00-request/index|docs/00-request/index.md]]
 - [[00-request/request|docs/00-request/request.md]]
-- [[01-requirements/BRD-system1_U_0.2.0|docs/01-requirements/BRD-system1_U_0.2.0.md]]
+- [[01-requirements/BRD-system1_U_0.3.0|docs/01-requirements/BRD-system1_U_0.3.0.md]]
+- [[01-requirements/GAP-engineering_U_0.3.0|docs/01-requirements/GAP-engineering_U_0.3.0.md]]
 - [[01-requirements/index|docs/01-requirements/index.md]]
-- [[02-design/SAD-system1_HD_0.2.0|docs/02-design/SAD-system1_HD_0.2.0.md]]
+- [[01-requirements/traceability|docs/01-requirements/traceability.md]]
+- [[02-design/CLM-storage_CD_0.3.0|docs/02-design/CLM-storage_CD_0.3.0.md]]
+- [[02-design/SAD-system1_HD_0.3.0|docs/02-design/SAD-system1_HD_0.3.0.md]]
 - [[02-design/decisions/ADR-001-engineering_CD_0.2.0|docs/02-design/decisions/ADR-001-engineering_CD_0.2.0.md]]
+- [[02-design/decisions/ADR-002-layout_CD_0.3.0|docs/02-design/decisions/ADR-002-layout_CD_0.3.0.md]]
 - [[02-design/decisions/index|docs/02-design/decisions/index.md]]
 - [[02-design/index|docs/02-design/index.md]]
-- [[03-plan/CODE-system1_CD_0.2.0|docs/03-plan/CODE-system1_CD_0.2.0.md]]
+- [[03-plan/CODE-system1_CD_0.3.0|docs/03-plan/CODE-system1_CD_0.3.0.md]]
+- [[03-plan/PP-engineering_CD_0.3.0|docs/03-plan/PP-engineering_CD_0.3.0.md]]
 - [[03-plan/index|docs/03-plan/index.md]]
 - [[03-plan/tasks|docs/03-plan/tasks.md]]
+- [[04-progress/2026-10-09-complete-engineering|docs/04-progress/2026-10-09-complete-engineering.md]]
 - [[04-progress/2026-10-09-engineering|docs/04-progress/2026-10-09-engineering.md]]
 - [[04-progress/2026-10-09-host-validation|docs/04-progress/2026-10-09-host-validation.md]]
+- [[04-progress/SESSION|docs/04-progress/SESSION.md]]
+- [[04-progress/baselines|docs/04-progress/baselines.md]]
 - [[04-progress/index|docs/04-progress/index.md]]
-- [[05-testing/FTR-system1_VD_0.2.0|docs/05-testing/FTR-system1_VD_0.2.0.md]]
+- [[05-testing/FTR-system1_VD_0.3.0|docs/05-testing/FTR-system1_VD_0.3.0.md]]
 - [[05-testing/NFTR-system1_VD_0.2.0|docs/05-testing/NFTR-system1_VD_0.2.0.md]]
 - [[05-testing/index|docs/05-testing/index.md]]
+- [[05-testing/samples/index|docs/05-testing/samples/index.md]]
+- [docs/05-testing/samples/linux-i9-13900k.json](../docs/05-testing/samples/linux-i9-13900k.json)
+- [docs/05-testing/samples/linux-rtx4090.json](../docs/05-testing/samples/linux-rtx4090.json)
 - [[06-experience/2026-10-09-layout|docs/06-experience/2026-10-09-layout.md]]
 - [[06-experience/index|docs/06-experience/index.md]]
-- [[07-ops/CMP-system1_IG_0.2.0|docs/07-ops/CMP-system1_IG_0.2.0.md]]
+- [[07-ops/CMP-system1_IG_0.3.0|docs/07-ops/CMP-system1_IG_0.3.0.md]]
+- [[07-ops/DRR-layout_VD_0.3.0|docs/07-ops/DRR-layout_VD_0.3.0.md]]
 - [[07-ops/NOTICE|docs/07-ops/NOTICE.md]]
-- [[07-ops/RUNBOOK-system1_MG_0.2.0|docs/07-ops/RUNBOOK-system1_MG_0.2.0.md]]
+- [[07-ops/RUNBOOK-system1_MG_0.3.0|docs/07-ops/RUNBOOK-system1_MG_0.3.0.md]]
 - [[07-ops/index|docs/07-ops/index.md]]
+- [[FILE_INDEX|docs/FILE_INDEX.md]]
 - [[README|docs/README.md]]
 - [[glossary|docs/glossary.md]]
-- [[standards/README|standards/README.md]]
-- [[standards/change-management|standards/change-management.md]]
-- [[standards/code-style|standards/code-style.md]]
-- [[standards/configuration-management|standards/configuration-management.md]]
-- [[standards/documentation|standards/documentation.md]]
-- [[standards/enterprise/README|standards/enterprise/README.md]]
-- [[standards/enterprise/_inbox/README|standards/enterprise/_inbox/README.md]]
-- [[standards/interfaces|standards/interfaces.md]]
-- [[standards/languages/go|standards/languages/go.md]]
-- [[standards/languages/java|standards/languages/java.md]]
-- [[standards/languages/node|standards/languages/node.md]]
-- [[standards/languages/python|standards/languages/python.md]]
-- [[standards/languages/rust|standards/languages/rust.md]]
-- [[standards/non-functional|standards/non-functional.md]]
-- [[standards/observability|standards/observability.md]]
-- [[standards/performance|standards/performance.md]]
-- [[standards/process|standards/process.md]]
-- [[standards/quality-gates|standards/quality-gates.md]]
-- [[standards/reliability|standards/reliability.md]]
-- [[standards/security|standards/security.md]]
-- [[standards/testing|standards/testing.md]]
-- [[standards/troubleshooting|standards/troubleshooting.md]]
-
-## 源码与工具
-
-源码真源src/system1_ops；原生桥native；测试tests；模板configs；门禁scripts；依赖和版本pyproject.toml/uv.lock；规范来源standards/source.json。
-
-## 参考文档
-
-| 文档 | 用途 |
-|---|---|
-| [[FILE_INDEX|docs/FILE_INDEX.md]] | 查找本项目的关联文档 |
+- [native/CMakeLists.txt](../native/CMakeLists.txt)
+- [native/engine.cpp](../native/engine.cpp)
+- [pyproject.toml](../pyproject.toml)
+- [scripts/__init__.py](../scripts/__init__.py)
+- [scripts/archive_release.py](../scripts/archive_release.py)
+- [scripts/artifact_check.py](../scripts/artifact_check.py)
+- [scripts/benchmark.py](../scripts/benchmark.py)
+- [scripts/bootstrap.py](../scripts/bootstrap.py)
+- [scripts/doc-check.sh](../scripts/doc-check.sh)
+- [scripts/doc_check.py](../scripts/doc_check.py)
+- [scripts/index_files.py](../scripts/index_files.py)
+- [scripts/journal.py](../scripts/journal.py)
+- [scripts/launch.py](../scripts/launch.py)
+- [scripts/layout.py](../scripts/layout.py)
+- [scripts/publish.py](../scripts/publish.py)
+- [scripts/quality-gate.sh](../scripts/quality-gate.sh)
+- [scripts/quality_gate.py](../scripts/quality_gate.py)
+- [scripts/setup-runtime.ps1](../scripts/setup-runtime.ps1)
+- [scripts/setup-runtime.sh](../scripts/setup-runtime.sh)
+- [scripts/verify_native.py](../scripts/verify_native.py)
+- [scripts/verify_real.py](../scripts/verify_real.py)
+- [src/system1_ops/__init__.py](../src/system1_ops/__init__.py)
+- [src/system1_ops/benchmark.py](../src/system1_ops/benchmark.py)
+- [src/system1_ops/bootstrap.py](../src/system1_ops/bootstrap.py)
+- [src/system1_ops/common.py](../src/system1_ops/common.py)
+- [src/system1_ops/dashboard.py](../src/system1_ops/dashboard.py)
+- [src/system1_ops/logging_config.py](../src/system1_ops/logging_config.py)
+- [src/system1_ops/manage.py](../src/system1_ops/manage.py)
+- [src/system1_ops/native_gguf.py](../src/system1_ops/native_gguf.py)
+- [src/system1_ops/portable.py](../src/system1_ops/portable.py)
+- [src/system1_ops/publish.py](../src/system1_ops/publish.py)
+- [src/system1_ops/startlux_policy.py](../src/system1_ops/startlux_policy.py)
+- [src/system1_ops/verify_native.py](../src/system1_ops/verify_native.py)
+- [src/system1_ops/verify_real.py](../src/system1_ops/verify_real.py)
+- [src/system1_ops/web/app.js](../src/system1_ops/web/app.js)
+- [src/system1_ops/web/index.html](../src/system1_ops/web/index.html)
+- [src/system1_ops/worker.py](../src/system1_ops/worker.py)
+- [standards/LICENSE](../standards/LICENSE)
+- [standards/README.md](../standards/README.md)
+- [standards/change-management.md](../standards/change-management.md)
+- [standards/code-style.md](../standards/code-style.md)
+- [standards/configuration-management.md](../standards/configuration-management.md)
+- [standards/documentation.md](../standards/documentation.md)
+- [standards/enterprise/README.md](../standards/enterprise/README.md)
+- [standards/enterprise/_inbox/README.md](../standards/enterprise/_inbox/README.md)
+- [standards/enterprise/_inbox/_source/.gitkeep](../standards/enterprise/_inbox/_source/.gitkeep)
+- [standards/interfaces.md](../standards/interfaces.md)
+- [standards/languages/go.md](../standards/languages/go.md)
+- [standards/languages/java.md](../standards/languages/java.md)
+- [standards/languages/node.md](../standards/languages/node.md)
+- [standards/languages/python.md](../standards/languages/python.md)
+- [standards/languages/rust.md](../standards/languages/rust.md)
+- [standards/non-functional.md](../standards/non-functional.md)
+- [standards/observability.md](../standards/observability.md)
+- [standards/performance.md](../standards/performance.md)
+- [standards/process.md](../standards/process.md)
+- [standards/quality-gates.md](../standards/quality-gates.md)
+- [standards/reliability.md](../standards/reliability.md)
+- [standards/security.md](../standards/security.md)
+- [standards/source.json](../standards/source.json)
+- [standards/testing.md](../standards/testing.md)
+- [standards/troubleshooting.md](../standards/troubleshooting.md)
+- [system1.ps1](../system1.ps1)
+- [system1.sh](../system1.sh)
+- [tests/__init__.py](../tests/__init__.py)
+- [tests/test_docs.py](../tests/test_docs.py)
+- [tests/test_extended.py](../tests/test_extended.py)
+- [tests/test_layout.py](../tests/test_layout.py)
+- [tests/test_logging.py](../tests/test_logging.py)
+- [tests/test_ops.py](../tests/test_ops.py)
+- [uv.lock](../uv.lock)

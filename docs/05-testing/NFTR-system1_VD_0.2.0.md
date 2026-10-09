@@ -132,3 +132,9 @@ The script refuses to claim release when no listener can be identified or it res
 | 文档 | 用途 |
 |---|---|
 | [[FILE_INDEX|docs/FILE_INDEX.md]] | 查找本项目的关联文档 |
+
+## 变更记录
+
+| 版本 | 日期 | 记录入口 |
+|---|---|---|
+| 0.2.0 | 2026-10-09 | [[04-progress/2026-10-09-complete-engineering|过程记录]]；历史基线见[[04-progress/baselines]] |

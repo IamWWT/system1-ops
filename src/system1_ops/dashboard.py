@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from functools import partial
 from typing import Any
 
-from .common import DEFAULT_CONFIG, ROOT, add_overrides, bearer_matches, config, load_local_environment
+from .common import DEFAULT_CONFIG, ROOT, STATE, add_overrides, bearer_matches, config, load_local_environment
 from .logging_config import configure_logging
 from .manage import LOGS, RUN, record, request, start, stop
 from .portable import file_lock, hardware, tail
@@ -140,7 +140,7 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
 
     @app.get("/ops/reports")
     def reports() -> Any:
-        report = ROOT / "reports" / "latest.json"
+        report = STATE / "reports" / "latest.json"
         return (
             json.loads(report.read_text(encoding="utf-8"))
             if report.exists()
@@ -189,7 +189,7 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
                         subprocess.run(
                             [
                                 sys.executable,
-                                str(ROOT / "benchmark.py"),
+                                str(ROOT / "scripts" / "benchmark.py"),
                                 "--model",
                                 name,
                                 "--config",

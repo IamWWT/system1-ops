@@ -7,14 +7,14 @@ import os
 import sys
 import time
 
-from .common import ROOT, config, preflight
+from .common import DEFAULT_CONFIG, config, preflight
 from .manage import SMOKE
 from .worker import Engine
 
 parser = argparse.ArgumentParser()
 parser.add_argument("model")
 args = parser.parse_args()
-item = config(ROOT / "config.toml")[args.model]
+item = config(DEFAULT_CONFIG)[args.model]
 preflight(item)
 sys.path.insert(0, item["source"])
 sys.path.extend(item["dependency_paths"])

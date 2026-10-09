@@ -53,7 +53,7 @@ async function logs() { try { if ($("logModel").value) $("logs").textContent = (
 async function reports() {
   try {
     const data = await api("/ops/reports"); $("reports").replaceChildren();
-    if (!data.results.length) { $("reports").append(text("p", "尚无性能报告。使用模型卡片的性能测试，或运行 benchmark.py。")); return; }
+    if (!data.results.length) { $("reports").append(text("p", "尚无性能报告。使用模型卡片的性能测试，或运行 scripts/benchmark.py。")); return; }
     const table = document.createElement("table"), head = document.createElement("tr");
     for (const label of ["候选", "状态", "P50 ms", "P95 ms", "峰值 MiB", "兼容检查"]) head.append(text("th", label)); table.append(head);
     for (const row of data.results) { const line = document.createElement("tr"); for (const value of [row.candidate || row.model, row.status, row.p50_ms?.toFixed(1) ?? "—", row.p95_ms?.toFixed(1) ?? "—", row.peak_rss_mb?.toFixed(0) ?? "—", row.compatibility ? (row.compatibility.passed ? "通过" : "未通过") : row.reason || "—"]) line.append(text("td", String(value))); table.append(line); }

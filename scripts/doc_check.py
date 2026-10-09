@@ -10,9 +10,15 @@ from typing import Any
 
 import yaml
 
+try:
+    from .layout import maintained_files, root_errors
+except ImportError:
+    from layout import maintained_files, root_errors
+
 ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED = {
     ".git",
+    ".local",
     "vendor",
     "models",
     "reports",
@@ -53,12 +59,19 @@ def resolve(root: Path, source: Path, target: str, wiki: bool) -> Path | None:
 
 
 def check(root: Path = ROOT) -> list[str]:
-    errors: list[str] = []
+    errors: list[str] = root_errors(root)
     files = markdown_files(root)
     index = root / "docs/FILE_INDEX.md"
     listing = index.read_text(encoding="utf-8") if index.exists() else ""
     if not listing:
         errors.append("missing docs/FILE_INDEX.md")
+    for p in maintained_files(root):
+        relative = p.relative_to(root).as_posix()
+        if relative not in listing:
+            errors.append(f"{relative}: maintained file not registered in FILE_INDEX")
+    for required in ("docs/04-progress/SESSION.md", "docs/04-progress/baselines.md"):
+        if not (root / required).is_file():
+            errors.append(f"missing engineering workflow record: {required}")
     manifest_path = root / "standards/source.json"
     manifest: dict[str, Any] = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"files": {}}
     for p in files:
@@ -77,6 +90,8 @@ def check(root: Path = ROOT) -> list[str]:
             "CHANGELOG.md",
             "AGENTS.md",
             "MEMORY.md",
+            "SESSION.md",
+            "baselines.md",
         )
         if not is_journal:
             match = re.match(r"^---\n(.*?)\n---\n", text, re.S)
@@ -84,12 +99,16 @@ def check(root: Path = ROOT) -> list[str]:
                 errors.append(f"{relative}: missing frontmatter")
             else:
                 data = yaml.safe_load(match[1])
-                for field in ("title", "type", "status", "version", "date", "owner"):
+                for field in ("title", "type", "status", "version", "date", "owner", "references"):
                     if field not in data:
                         errors.append(f"{relative}: missing {field}")
                 heading = re.search(r"^# (.+)$", text, re.M)
                 if not heading or data.get("title") != heading[1]:
                     errors.append(f"{relative}: title differs from H1")
+            if p.name not in ("README.md", "index.md", "FILE_INDEX.md", "glossary.md"):
+                for section in ("## 参考文档", "## 变更记录"):
+                    if section not in text:
+                        errors.append(f"{relative}: missing {section}")
         if len(re.findall(r"^# ", body, re.M)) != 1:
             errors.append(f"{relative}: expected one H1")
         if "{{" in body:

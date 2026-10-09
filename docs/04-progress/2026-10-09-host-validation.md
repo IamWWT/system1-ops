@@ -1,6 +1,6 @@
 # 重构前宿主验收记录
 
-记录来源：fd8ada3基线的host-handoff.md，保留其当时验收事实。当前运维入口见[[07-ops/RUNBOOK-system1_MG_0.2.0|运行手册]]。
+记录来源：fd8ada3基线的host-handoff.md，保留其当时验收事实。当前运维入口见[[07-ops/RUNBOOK-system1_MG_0.3.0|运行手册]]。
 
 ## 原验收内容
 

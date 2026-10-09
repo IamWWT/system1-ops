@@ -12,11 +12,20 @@ import urllib.error
 import urllib.request
 from typing import Any
 
-from .common import DEFAULT_CONFIG, ROOT, add_overrides, apply_overrides, config, load_local_environment, preflight
+from .common import (
+    DEFAULT_CONFIG,
+    ROOT,
+    STATE,
+    add_overrides,
+    apply_overrides,
+    config,
+    load_local_environment,
+    preflight,
+)
 from .portable import file_lock, identity, probe_port, tail
 
-RUN = ROOT / "run"
-LOGS = ROOT / "logs"
+RUN = STATE / "run"
+LOGS = STATE / "logs"
 HTTP = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 SMOKE: dict[str, Any] = {
     "state": "I was charged twice. Please refund me.",
@@ -206,8 +215,8 @@ def main() -> Any:
             "inference_timeout": 60,
             "api_key_env": "SYSTEM1_ADMIN_KEY",
         }
-        RUN.mkdir(exist_ok=True)
-        LOGS.mkdir(exist_ok=True)
+        RUN.mkdir(parents=True, exist_ok=True)
+        LOGS.mkdir(parents=True, exist_ok=True)
         with file_lock(RUN / "manage.lock"):
             if args.model in ("all", "start"):
                 start(item, args.config.resolve(), not args.no_wait)
@@ -225,8 +234,8 @@ def main() -> Any:
     if args.port and len(selected) != 1:
         parser.error("--port requires one named model")
     selected = [apply_overrides(item, args) for item in selected]
-    RUN.mkdir(exist_ok=True)
-    LOGS.mkdir(exist_ok=True)
+    RUN.mkdir(parents=True, exist_ok=True)
+    LOGS.mkdir(parents=True, exist_ok=True)
     failed = False
     # Serialize lifecycle changes, even when invoked from different terminals.
     with (

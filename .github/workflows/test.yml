@@ -20,6 +20,6 @@ jobs:
         if: always()
         with:
           name: coverage-${{ matrix.os }}
-          path: .coverage
+          path: .local/coverage
           include-hidden-files: true
           retention-days: 7

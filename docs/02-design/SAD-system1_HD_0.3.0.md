@@ -2,7 +2,7 @@
 title: 软件架构与目录蓝图
 type: spec
 status: active
-version: 0.2.0
+version: 0.3.0
 date: 2026-10-09
 owner: IamWWT
 applies_to: System1 Ops
@@ -12,7 +12,7 @@ references:
 
 # 软件架构与目录蓝图
 
-> 版本: 0.2.0 | 状态: Active
+> 版本: 0.3.0 | 状态: Active
 > 适用范围: System1 Ops
 > 关联: [[FILE_INDEX|全库索引]]
 
@@ -29,7 +29,7 @@ references:
 | benchmark.py | 隔离性能/数值门槛 | 同一fixture、完整失败记录 |
 | logging_config.py | JSON行日志与异常关联 | 请求ID、可轮转文件，不记录认证header |
 | scripts/ | 兼容入口桥接与质量门禁 | 工具自身位置解析路径 |
-| configs/ | 可复制至项目根的公开模板 | 私有config.toml是运行配置真源 |
+| configs/ | 可复制至.local的公开模板 | 私有.local/config.toml是运行配置真源 |
 | tests/ | 可重复契约/运维单测 | 真实模型验证独立运行 |
 
 ## 运行流
@@ -56,18 +56,24 @@ references:
 
 ## 目录蓝图
 
-源码真源在src/system1_ops；native保留C++桥；tests存测试；configs存模板；scripts存工具。根目录Python文件仅兼容入口。运行数据models/vendor/logs/run/reports/evidence与私有配置保持项目根且Git忽略。docs采用00-request至07-ops英文阶段方案；每目录有索引。标准快照在standards，由source.json校验，不手工双写上游规范。
+源码真源在src/system1_ops；native保留C++桥；tests存测试；configs存模板；scripts存工具。根目录只留双平台启动入口和工程工具链文件。工具命令归scripts；私有配置、models/vendor/logs/run/reports/evidence和归档集中.local且Git忽略。Python虚拟环境与位置绑定的原生构建仍为隐藏工具目录。docs采用00-request至07-ops英文阶段方案；每目录有索引。标准快照在standards，由source.json校验，不手工双写上游规范。
 
 ## 设计约束
 
-每模型一个进程和一个推理槽，避免多HTTP worker复制权重。低RAM配置跨进程共享锁并逐请求卸载，保留进程基础开销。配置相对路径以运行config.toml所在目录解析；configs模板先复制到项目根。安装分发基于仓库checkout，指定SYSTEM1_HOME可使用已安装包定位此工作区。
+每模型一个进程和一个推理槽，避免多HTTP worker复制权重。低RAM配置跨进程共享锁并逐请求卸载，保留进程基础开销。配置相对路径以运行config.toml所在目录解析；configs模板先复制到.local。安装分发基于仓库checkout，指定SYSTEM1_HOME可使用已安装包定位此工作区。
 
 ## 关联
 
-[[01-requirements/BRD-system1_U_0.2.0]] · [[02-design/decisions/ADR-001-engineering_CD_0.2.0]] · [[07-ops/RUNBOOK-system1_MG_0.2.0]]
+[[01-requirements/BRD-system1_U_0.3.0]] · [[02-design/decisions/ADR-001-engineering_CD_0.2.0]] · [[07-ops/RUNBOOK-system1_MG_0.3.0]]
 
 ## 参考文档
 
 | 文档 | 用途 |
 |---|---|
 | [[FILE_INDEX|docs/FILE_INDEX.md]] | 查找本项目的关联文档 |
+
+## 变更记录
+
+| 版本 | 日期 | 记录入口 |
+|---|---|---|
+| 0.3.0 | 2026-10-09 | [[04-progress/2026-10-09-complete-engineering|过程记录]]；历史基线见[[04-progress/baselines]] |

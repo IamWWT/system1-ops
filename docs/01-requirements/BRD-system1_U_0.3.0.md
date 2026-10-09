@@ -2,7 +2,7 @@
 title: 需求与验收矩阵
 type: prd
 status: active
-version: 0.2.0
+version: 0.3.0
 date: 2026-10-09
 owner: IamWWT
 applies_to: System1 Ops
@@ -12,7 +12,7 @@ references:
 
 # 需求与验收矩阵
 
-> 版本: 0.2.0 | 状态: Active
+> 版本: 0.3.0 | 状态: Active
 > 适用范围: System1 Ops
 > 关联: [[FILE_INDEX|全库索引]]
 
@@ -41,10 +41,16 @@ Windows laptop本身和Windows Laya/4B真实权重推理仍未在该设备验收
 
 ## 上下游
 
-需求来源：[[00-request/request]]。设计：[[02-design/SAD-system1_HD_0.2.0]]。证据：[[05-testing/FTR-system1_VD_0.2.0]]。
+需求来源：[[00-request/request]]。设计：[[02-design/SAD-system1_HD_0.3.0]]。证据：[[05-testing/FTR-system1_VD_0.3.0]]。
 
 ## 参考文档
 
 | 文档 | 用途 |
 |---|---|
 | [[FILE_INDEX|docs/FILE_INDEX.md]] | 查找本项目的关联文档 |
+
+## 变更记录
+
+| 版本 | 日期 | 记录入口 |
+|---|---|---|
+| 0.3.0 | 2026-10-09 | [[04-progress/2026-10-09-complete-engineering|过程记录]]；历史基线见[[04-progress/baselines]] |

@@ -2,7 +2,7 @@
 title: 项目文档导航
 type: index
 status: active
-version: 0.2.0
+version: 0.3.0
 date: 2026-10-09
 owner: IamWWT
 applies_to: System1 Ops
@@ -12,7 +12,7 @@ references:
 
 # 项目文档导航
 
-> 版本: 0.2.0 | 状态: Active
+> 版本: 0.3.0 | 状态: Active
 > 适用范围: System1 Ops
 > 关联: [[FILE_INDEX|全库索引]]
 

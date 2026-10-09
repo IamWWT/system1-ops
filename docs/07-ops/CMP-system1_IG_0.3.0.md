@@ -2,7 +2,7 @@
 title: 配置项与环境清单
 type: inventory
 status: active
-version: 0.2.0
+version: 0.3.0
 date: 2026-10-09
 owner: IamWWT
 applies_to: System1 Ops
@@ -12,13 +12,13 @@ references:
 
 # 配置项与环境清单
 
-> 版本: 0.2.0 | 状态: Active
+> 版本: 0.3.0 | 状态: Active
 > 适用范围: System1 Ops
 > 关联: [[FILE_INDEX|全库索引]]
 
 ## 单一真源
 
-运行配置config.toml；公开模板configs/example.toml、windows-cpu.toml、windows-gguf.toml。密钥.env或进程环境，环境变量优先。.env只白名单读取两种认证键；其他变量需由调用环境导出。
+运行配置.local/config.toml；公开模板configs/example.toml、windows-cpu.toml、windows-gguf.toml。密钥.local/.env或进程环境，环境变量优先。.local/.env只白名单读取两种认证键；其他变量需由调用环境导出。
 
 | 环境变量 | 用途 | 默认/覆盖 |
 |---|---|---|
@@ -45,12 +45,18 @@ config变更后restart对应模型；CLI临时--device/--port/--context-length�
 
 ## 版本控制
 
-uv.lock/pyproject/.python-version固定服务工具链。requirements-http.txt是uv.lock的无dev导出，门禁检查二者一致，不手工双写。bootstrap.SOURCES固定模型框架源码commit；模型revision与文件SHA写性能证据。所有私有权重、vendor、配置、日志与二进制不提交。规范源由standards/source.json记录commit和逐文件hash。
+uv.lock/pyproject/.python-version固定服务工具链。configs/requirements-http.txt是uv.lock的无dev导出，门禁检查二者一致，不手工双写。bootstrap.SOURCES固定模型框架源码commit；模型revision与文件SHA写性能证据。所有私有权重、vendor、配置、日志与二进制不提交。规范源由standards/source.json记录commit和逐文件hash。
 
-操作入口：[[07-ops/RUNBOOK-system1_MG_0.2.0]]。
+操作入口：[[07-ops/RUNBOOK-system1_MG_0.3.0]]。
 
 ## 参考文档
 
 | 文档 | 用途 |
 |---|---|
 | [[FILE_INDEX|docs/FILE_INDEX.md]] | 查找本项目的关联文档 |
+
+## 变更记录
+
+| 版本 | 日期 | 记录入口 |
+|---|---|---|
+| 0.3.0 | 2026-10-09 | [[04-progress/2026-10-09-complete-engineering|过程记录]]；历史基线见[[04-progress/baselines]] |

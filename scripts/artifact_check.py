@@ -1,5 +1,6 @@
 """Verify distributable assets and reject private runtime data in built archives."""
 
+import argparse
 import hashlib
 import tarfile
 import zipfile
@@ -9,7 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> int:
-    artifacts = sorted((ROOT / "dist").glob("system1_ops-*.whl")) + sorted((ROOT / "dist").glob("system1_ops-*.tar.gz"))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--directory", type=Path, default=ROOT / ".local/dist")
+    directory = parser.parse_args().directory
+    artifacts = sorted(directory.glob("system1_ops-*.whl")) + sorted(directory.glob("system1_ops-*.tar.gz"))
     if len(artifacts) != 2:
         raise ValueError("expected one versioned wheel and one source archive")
     for path in artifacts:
@@ -24,7 +28,19 @@ def main() -> int:
         for name in names:
             parts = Path(name).parts
             if any(
-                part in ("config.toml", ".env", "models", "vendor", "logs", "run", "evidence", ".venv", ".venv-cu130")
+                part
+                in (
+                    ".local",
+                    "config.toml",
+                    ".env",
+                    "models",
+                    "vendor",
+                    "logs",
+                    "run",
+                    "evidence",
+                    ".venv",
+                    ".venv-cu130",
+                )
                 for part in parts
             ):
                 raise ValueError("private runtime data in artifact: " + name)

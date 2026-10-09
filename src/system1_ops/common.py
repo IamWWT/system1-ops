@@ -9,7 +9,12 @@ import tomllib
 from typing import Any
 
 ROOT = pathlib.Path(os.environ.get("SYSTEM1_HOME", pathlib.Path(__file__).resolve().parents[2]))
-DEFAULT_CONFIG = ROOT / "config.toml" if (ROOT / "config.toml").exists() else ROOT / "configs" / "example.toml"
+# Generated/private runtime files are separate from maintained source.
+STATE = pathlib.Path(os.environ.get("SYSTEM1_STATE_DIR", ROOT / ".local")).expanduser().absolute()
+DEFAULT_CONFIG = next(
+    (p for p in (STATE / "config.toml", ROOT / "config.toml") if p.is_file()),
+    ROOT / "configs" / "example.toml",
+)
 
 
 def bearer_matches(header: str, key: str) -> bool:
@@ -19,7 +24,9 @@ def bearer_matches(header: str, key: str) -> bool:
 
 def load_local_environment() -> None:
     """Optional local credentials; caller environment wins, no shell evaluation."""
-    path = ROOT / ".env"
+    path = STATE / ".env"
+    if not path.is_file():
+        path = ROOT / ".env"
     if not path.is_file():
         return
     for line in path.read_text(encoding="utf-8").splitlines():

@@ -22,18 +22,18 @@ def main() -> int:
         [python, str(ROOT / "scripts/doc_check.py")],
         ["clang-format", "--dry-run", "--Werror", "native/engine.cpp"],
         ["node", "--check", "src/system1_ops/web/app.js"],
-        ["uv", "build", "--no-build-isolation", "--out-dir", "dist"],
+        ["uv", "build", "--no-build-isolation", "--out-dir", ".local/dist"],
         [python, str(ROOT / "scripts/artifact_check.py")],
     ]
     if os.name != "nt":
-        commands.append(["bash", "-n", "system1.sh", "setup-runtime.sh"])
+        commands.append(["bash", "-n", "system1.sh", "scripts/setup-runtime.sh"])
     exported = subprocess.run(
         ["uv", "export", "--locked", "--no-dev", "--no-emit-project", "--no-hashes", "--no-header"],
         cwd=ROOT,
         capture_output=True,
         text=True,
     )
-    if exported.returncode or exported.stdout != (ROOT / "requirements-http.txt").read_text(encoding="utf-8"):
+    if exported.returncode or exported.stdout != (ROOT / "configs/requirements-http.txt").read_text(encoding="utf-8"):
         print("requirements-http.txt differs from uv.lock export", file=sys.stderr)
         return 1
     for command in commands:

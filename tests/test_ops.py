@@ -247,7 +247,7 @@ class Preflight(unittest.TestCase):
             return {"q": {"type": "noul", "noul": 0.8}}, {"input_tokens": 1, "output_tokens": 0}
 
         with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
-            stack.enter_context(patch("system1_ops.worker.ROOT", pathlib.Path(directory)))
+            stack.enter_context(patch("system1_ops.worker.STATE", pathlib.Path(directory)))
             engines = []
             for name in ("one", "two"):
                 item = dict(

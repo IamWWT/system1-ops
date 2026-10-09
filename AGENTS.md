@@ -1,8 +1,8 @@
-# System1 Ops 开发入口
+# System1 Ops 工程协作入口
 
-1. 开始修改时先读README.md、docs/FILE_INDEX.md、docs/04-progress/index.md；从standards/README.md选择任务相关规范。
-2. 改目录/模块时读docs/02-design/SAD-system1_HD_0.2.0.md；新取舍记ADR。兼容和规范裁剪以docs/02-design/decisions/ADR-001-engineering_CD_0.2.0.md为准。
-3. 运行config.toml和.env在项目根；用户原始模型、vendor、venv、日志与运行数据保持Git忽略。修改代码时保留已公开CLI、Jev接口和PID身份校验。
-4. 开发先在特性分支；以uv.lock工具链运行uv run python scripts/quality_gate.py。模型/原生路径变更还需真实模型与平台验证，记录实际输出，不用mock替代外部验收。
-5. 文档采用docs的英文编号阶段目录。现状、过程和决策分开；新增/移动Markdown同步目录索引和FILE_INDEX，并运行scripts/doc_check.py。
-6. 日常变更按用户已授权范围继续；涉及新的不可逆操作再确认。失败与回退追加04-progress记录。未测能力明确标注，密钥和个人日志留在本机。
+1. 先读README、docs/04-progress/SESSION.md、MEMORY、docs/00-request/request.md；目标只允许system1-ops，父目录独立仓库只读。读取交接的进行中/下一步，再按用户当前要求继续。
+2. 完整工作方式真源docs/03-plan/PP-engineering_CD_0.3.0.md；规范从standards/README渐进加载。需求原话/假设/验收先落盘，目标与差距分离，七阶段关口不能凭CI自行替代。
+3. 当前结构与文件持久化见SAD、CLM；日常命令system1.sh/ps1，工具在scripts，私有配置与运行数据.local。新目录/文件必须登记FILE_INDEX，禁止把运行数据写回根目录。
+4. 特性分支小批提交；uv sync --locked与scripts/quality_gate.py统一验证。原生/路径/模型变更补真实用户配置HTTP和Windows证明；失败与回退追加当日日志。
+5. 现状、过程、决策分离；ADR及历史只增不改；移动文件同批修全文引用。正式文档须元数据、参考与版本变更入口，目录有index，索引覆盖全部维护文件。
+6. 结束前SESSION、当日日志、MEMORY三同步；基线登记表、验证标签、产品库与SHA256齐备。已授权维护/测试/public推送继续，不重复请示；新不可逆范围再向用户确认。

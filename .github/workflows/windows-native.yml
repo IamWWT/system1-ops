@@ -13,18 +13,18 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-          cache-dependency-path: requirements-http.txt
+          cache-dependency-path: configs/requirements-http.txt
       - run: python -m pip install torch==2.12.0 --index-url https://download.pytorch.org/whl/cpu
-      - run: python -m pip install transformers==5.19.0 safetensors huggingface_hub pillow numpy httpx -r requirements-http.txt
-      - run: python bootstrap.py --sources
-      - run: python bootstrap.py --build-native cpu
-      - run: python bootstrap.py --models startlux-0.8b-q8 --revision 50adbd33032110de2454d01328cfb26a2ba4f113
+      - run: python -m pip install transformers==5.19.0 safetensors huggingface_hub pillow numpy httpx -r configs/requirements-http.txt
+      - run: python scripts/bootstrap.py --sources
+      - run: python scripts/bootstrap.py --build-native cpu
+      - run: python scripts/bootstrap.py --models startlux-0.8b-q8 --revision 50adbd33032110de2454d01328cfb26a2ba4f113
       - name: Configure and verify real native model
         shell: pwsh
         run: |
-          Copy-Item configs/windows-gguf.toml config.toml
-          $env:SYSTEM1_NATIVE_BINARY = "$PWD\vendor\llama.cpp\build-cpu\bin\Release\system1-native.exe"
-          python verify_native.py
+          Copy-Item configs/windows-gguf.toml .local/config.toml
+          $env:SYSTEM1_NATIVE_BINARY = "$PWD\.local\vendor\llama.cpp\build-cpu\bin\Release\system1-native.exe"
+          python scripts/verify_native.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           .\system1.ps1 start startlux-0.8b --device cpu --context-length 8192
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -51,5 +51,5 @@ jobs:
         if: always()
         with:
           name: windows-native-logs
-          path: logs/
+          path: .local/logs/
           retention-days: 7

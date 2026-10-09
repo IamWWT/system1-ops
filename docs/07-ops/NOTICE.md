@@ -2,7 +2,7 @@
 title: 第三方组件与许可
 type: reference
 status: active
-version: 0.2.0
+version: 0.3.0
 date: 2026-10-09
 owner: IamWWT
 applies_to: System1 Ops
@@ -12,7 +12,7 @@ references:
 
 # 第三方组件与许可
 
-> 版本: 0.2.0 | 状态: Active
+> 版本: 0.3.0 | 状态: Active
 > 适用范围: System1 Ops
 > 关联: [[FILE_INDEX|全库索引]]
 
@@ -41,3 +41,9 @@ Engineering standards are vendored from [dsh-agent-presets](https://github.com/I
 | 文档 | 用途 |
 |---|---|
 | [[FILE_INDEX|docs/FILE_INDEX.md]] | 查找本项目的关联文档 |
+
+## 变更记录
+
+| 版本 | 日期 | 记录入口 |
+|---|---|---|
+| 0.3.0 | 2026-10-09 | [[04-progress/2026-10-09-complete-engineering|过程记录]]；历史基线见[[04-progress/baselines]] |
