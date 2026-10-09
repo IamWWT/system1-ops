@@ -22,7 +22,7 @@ def main() -> int:
         [python, str(ROOT / "scripts/doc_check.py")],
         ["clang-format", "--dry-run", "--Werror", "native/engine.cpp"],
         ["node", "--check", "src/system1_ops/web/app.js"],
-        ["uv", "build", "--out-dir", "dist"],
+        ["uv", "build", "--no-build-isolation", "--out-dir", "dist"],
         [python, str(ROOT / "scripts/artifact_check.py")],
     ]
     if os.name != "nt":

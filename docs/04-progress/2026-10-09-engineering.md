@@ -18,3 +18,11 @@
 - 更正：上条Windows平台mypy通过与完整归档隐私检查声明早于读取命令结果，实际Windows类型检查报告4项fcntl平台stub差异，归档遍历误读dist/.gitignore导致提前终止。采用运行分支中的显式平台属性访问修复；增加双平台mypy为强制门禁，归档只检查tar.gz/wheel并重新验证。先前本机mypy/构建/真实HTTP结果不受影响。
 
 - 修复后双平台mypy、构建和分发隐私检查均实际通过；质量门禁验证wheel含web资源、tar.gz/wheel无私有配置/密钥/模型/日志。文件校验和由scripts/artifact_check.py实时给出。
+
+- 远程首轮CI在Windows因fcntl类型stub失败，修复后的Linux/Windows统一门禁实际通过：https://github.com/IamWWT/system1-ops/actions/runs/37908387561 。Windows native真实构建/模型/HTTP/重启验收仍运行，完成前不标通过。
+
+- 构建工具Hatchling也纳入uv.lock开发组，并把build-system约束固定到锁定版本；门禁关闭构建隔离，使用同一锁定工具链构建，而不是发布时重新解析构建依赖。
+
+- 审计自审发现：未认证静态页被错误标记admin；新增失败用例定位并修复为实际Bearer匹配。同时把比较集中到common并使用UTF-8 bytes，非法非ASCII认证header返回401而非抛TypeError。有效密钥/匿名模型配置与Jev契约保持原行为。
+
+- Windows native迁移验收实际通过：https://github.com/IamWWT/system1-ops/actions/runs/37908390313 ，含原生编译、真实0.8B Q8、PowerShell启动、模型和运维HTTP与重启。认证/审计修复后本地31项测试与门禁通过，后续远程门禁继续校验最终提交。

@@ -178,6 +178,18 @@ class Dashboard(unittest.IsolatedAsyncioTestCase):
             denied = await client.post("/ops/models/laya/start")
             self.assertEqual(denied.status_code, 403)
 
+    async def test_audit_actor_tracks_actual_authentication(self):
+        async with await self.client() as client:
+            with self.assertLogs("system1.ops", level="INFO") as captured:
+                await client.get("/")
+            self.assertEqual(captured.records[-1].actor, "anonymous")
+            with self.assertLogs("system1.ops", level="INFO") as captured:
+                await client.get("/ops/reports", headers={"Authorization": "Bearer test-admin-key"})
+            self.assertEqual(captured.records[-1].actor, "admin")
+            self.assertEqual(
+                (await client.get("/ops/reports", headers={"Authorization": b"Bearer \xff"})).status_code, 401
+            )
+
     async def test_auth_and_debug_whitelist(self):
         async with await self.client() as client:
             self.assertEqual((await client.get("/ops/reports")).status_code, 401)

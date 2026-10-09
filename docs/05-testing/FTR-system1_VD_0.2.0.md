@@ -33,7 +33,7 @@ Linux i9-13900K / RTX4090，Python3.12；保留独立torch CPU/CUDA环境。GitH
 
 ## 当前结论
 
-迁移前基线28项通过；结构整理并增加日志/文档回归测试后30项本地通过。Ruff、14模块mypy、Windows平台类型检查、文档、C++格式、JS语法、wheel/sdist构建和shell检查通过；全包覆盖37%。真实native与三个模型HTTP/页面验证通过，8882–8885恢复。最终Linux/Windows CI结果以04-progress中的本轮链接为准，未通过前不标为通过。
+迁移前基线28项通过；结构整理并增加日志/文档回归测试后31项本地通过。Ruff、14模块mypy、Windows平台类型检查、文档、C++格式、JS语法、wheel/sdist构建和shell检查通过；全包覆盖37%。真实native与三个模型HTTP/页面验证通过，8882–8885恢复。最终Linux/Windows CI结果以04-progress中的本轮链接为准，未通过前不标为通过。
 
 ## 需求映射
 

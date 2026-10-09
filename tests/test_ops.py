@@ -109,6 +109,12 @@ class API(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual((await client.get("/health")).status_code, 200)
                 self.assertEqual(
                     (
+                        await client.post("/v1/systemone", json=self.body, headers={"Authorization": b"Bearer \xff"})
+                    ).status_code,
+                    401,
+                )
+                self.assertEqual(
+                    (
                         await client.post(
                             "/v1/systemone", json=self.body, headers={"Authorization": "Bearer test-only-key"}
                         )

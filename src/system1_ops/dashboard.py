@@ -2,7 +2,6 @@
 
 import argparse
 import asyncio
-import hmac
 import json
 import logging
 import os
@@ -17,7 +16,7 @@ from contextlib import asynccontextmanager
 from functools import partial
 from typing import Any
 
-from .common import DEFAULT_CONFIG, ROOT, add_overrides, config, load_local_environment
+from .common import DEFAULT_CONFIG, ROOT, add_overrides, bearer_matches, config, load_local_environment
 from .logging_config import configure_logging
 from .manage import LOGS, RUN, record, request, start, stop
 from .portable import file_lock, hardware, tail
@@ -50,7 +49,7 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
     @app.middleware("http")
     async def authorization(req: Any, call_next: Any) -> Any:
         if req.url.path.startswith("/ops/"):
-            authenticated = bool(key) and hmac.compare_digest(req.headers.get("authorization", ""), "Bearer " + key)
+            authenticated = bearer_matches(req.headers.get("authorization", ""), key)
             if key and not authenticated:
                 return JSONResponse({"error": "admin key required"}, status_code=401)
             if req.method != "GET" and not authenticated:
@@ -70,7 +69,7 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
             extra={
                 "request_id": request_id,
                 "client": req.client.host if req.client else "",
-                "actor": "admin" if key and response.status_code != 401 else "anonymous",
+                "actor": "admin" if bearer_matches(req.headers.get("authorization", ""), key) else "anonymous",
                 "method": req.method,
                 "path": req.url.path,
                 "http_status": response.status_code,

@@ -3,7 +3,6 @@
 import argparse
 import asyncio
 import gc
-import hmac
 import json
 import logging
 import os
@@ -15,7 +14,16 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from typing import Any
 
-from .common import ROOT, add_overrides, apply_overrides, config, load_local_environment, preflight, prepare_runtime
+from .common import (
+    ROOT,
+    add_overrides,
+    apply_overrides,
+    bearer_matches,
+    config,
+    load_local_environment,
+    preflight,
+    prepare_runtime,
+)
 from .logging_config import configure_logging
 from .portable import snapshot
 
@@ -397,7 +405,7 @@ def create_app(item: Any, engine: Any) -> Any:
         if (
             key
             and request.url.path not in ("/health", "/v1/health")
-            and not hmac.compare_digest(request.headers.get("authorization", ""), "Bearer " + key)
+            and not bearer_matches(request.headers.get("authorization", ""), key)
         ):
             response = error(401, "unauthorized")
         else:

@@ -1,5 +1,6 @@
 """Configuration and offline checkpoint preflight. No torch imports here."""
 
+import hmac
 import json
 import os
 import pathlib
@@ -9,6 +10,11 @@ from typing import Any
 
 ROOT = pathlib.Path(os.environ.get("SYSTEM1_HOME", pathlib.Path(__file__).resolve().parents[2]))
 DEFAULT_CONFIG = ROOT / "config.toml" if (ROOT / "config.toml").exists() else ROOT / "configs" / "example.toml"
+
+
+def bearer_matches(header: str, key: str) -> bool:
+    """Compare byte strings so malformed non-ASCII headers fail closed too."""
+    return bool(key) and hmac.compare_digest(header.encode("utf-8"), ("Bearer " + key).encode("utf-8"))
 
 
 def load_local_environment() -> None:
