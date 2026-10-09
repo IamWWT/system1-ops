@@ -11,3 +11,6 @@
 - 本机33项单测与完整门禁通过，coverage37%；模式docs-audit输出合规无整改项。真实三模型Jev、native CPU状态隔离/错误恢复/卸载与桌面/手机页面通过。父目录本任务续接脚本-C调整为system1-ops，不移动其他仓库，防止工作目录再次漂移。
 
 - 用户新增仅main/一个tag约定；最终清理临时分支与旧标签，回退改用提交哈希/归档，已更新工作协议和当前手册。此前特性分支为真实过程记录，不以旧模板覆盖用户要求。
+
+- 配置完整性比对通过：迁移前后模型/解释器/源/二进制路径等价，设备、线程、上下文和端口未改变，moves.json各目标都存在。首次检查误用系统Python未安装包而报ModuleNotFoundError，改用uv锁环境后实际通过；不把环境导入错误误报模型问题。
+- 主分支Linux/Windows统一门禁实际通过：https://github.com/IamWWT/system1-ops/actions/runs/37914525575 。本地及远端只剩main；Windows native新路径仍在编译CPU后端，完成前不登记通过。

@@ -58,6 +58,7 @@ references:
 - [[05-testing/samples/index|docs/05-testing/samples/index.md]]
 - [docs/05-testing/samples/linux-i9-13900k.json](../docs/05-testing/samples/linux-i9-13900k.json)
 - [docs/05-testing/samples/linux-rtx4090.json](../docs/05-testing/samples/linux-rtx4090.json)
+- [[06-experience/2026-10-09-complete-engineering|docs/06-experience/2026-10-09-complete-engineering.md]]
 - [[06-experience/2026-10-09-layout|docs/06-experience/2026-10-09-layout.md]]
 - [[06-experience/index|docs/06-experience/index.md]]
 - [[07-ops/CMP-system1_IG_0.3.0|docs/07-ops/CMP-system1_IG_0.3.0.md]]

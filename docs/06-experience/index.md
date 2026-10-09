@@ -15,4 +15,6 @@ references:
 > 关联: [[FILE_INDEX|全库文件索引]]
 
 
+- [[06-experience/2026-10-09-complete-engineering|2026-10-09-complete-engineering.md]]
+
 - [[06-experience/2026-10-09-layout|2026-10-09-layout.md]]
