@@ -33,7 +33,7 @@ Linux i9-13900K / RTX4090，Python3.12；保留独立torch CPU/CUDA环境。GitH
 
 ## 当前结论
 
-迁移前基线28项通过；结构整理并增加日志/文档回归测试后31项本地通过。Ruff、14模块mypy、Windows平台类型检查、文档、C++格式、JS语法、wheel/sdist构建和shell检查通过；全包覆盖37%。真实native与三个模型HTTP/页面验证通过，8882–8885恢复。最终Linux/Windows CI结果以04-progress中的本轮链接为准，未通过前不标为通过。
+迁移前基线28项通过；结构整理并增加日志/文档回归测试后31项本地通过。Ruff、14模块mypy、Windows平台类型检查、文档、C++格式、JS语法、wheel/sdist构建和shell检查通过；全包覆盖37%。真实native与三个模型HTTP/页面验证通过，8882–8885恢复。最终代码35e7839的[Linux/Windows统一门禁](https://github.com/IamWWT/system1-ops/actions/runs/37909893974)通过；[Windows native真实模型验收](https://github.com/IamWWT/system1-ops/actions/runs/37908390313)通过。认证边界新增失败回归用例，修复后真实HTTP非法header返回401。
 
 ## 需求映射
 

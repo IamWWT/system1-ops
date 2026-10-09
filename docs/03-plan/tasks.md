@@ -26,6 +26,8 @@ references:
 | 恢复运行服务 | 8882–8885恢复、Jev smoke、浏览器 | [[07-ops/RUNBOOK-system1_MG_0.2.0]] |
 | 发布验证版本 | CI通过、标签/归档可回溯、推送public | [[04-progress/2026-10-09-engineering]] |
 
+上述五项组织任务已完成，发布基线为v0.2.0；验收证据与回退入口见工程记录。
+
 ## 待验证与欠账
 
 目标Windows laptop硬件、Windows Laya/4B真权重性能、全包覆盖提升至建议范围、既有Engine/CLI大函数进一步拆分。当前实现不以这些未完成项声称全面生产就绪。

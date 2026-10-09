@@ -26,3 +26,7 @@
 - 审计自审发现：未认证静态页被错误标记admin；新增失败用例定位并修复为实际Bearer匹配。同时把比较集中到common并使用UTF-8 bytes，非法非ASCII认证header返回401而非抛TypeError。有效密钥/匿名模型配置与Jev契约保持原行为。
 
 - Windows native迁移验收实际通过：https://github.com/IamWWT/system1-ops/actions/runs/37908390313 ，含原生编译、真实0.8B Q8、PowerShell启动、模型和运维HTTP与重启。认证/审计修复后本地31项测试与门禁通过，后续远程门禁继续校验最终提交。
+
+- 最终代码35e7839的Linux/Windows统一门禁实际通过：https://github.com/IamWWT/system1-ops/actions/runs/37909893974 。31项测试、双平台类型检查及锁定构建均通过。恢复后真实非法认证header返回401；三模型Jev、管理页面与审计验证通过。
+
+- 发布基线：v0.2.0；整理前回退标签baseline/pre-engineering-fd8ada3。本轮组织任务完成，以最终main提交和标签为可复现入口；覆盖率37%、目标laptop和Windows Laya/4B真机验证、大函数拆分继续作为明确欠账。
