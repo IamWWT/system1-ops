@@ -36,6 +36,13 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             $reply = Invoke-RestMethod http://127.0.0.1:8885/ops/state -Headers @{Authorization='Bearer ci-local-admin'}
             if ($reply.models.Count -ne 3) { throw 'dashboard model registry mismatch' }
+            .\system1.ps1 dashboard stop
+            .\system1.ps1 dashboard start
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            .\system1.ps1 restart startlux-0.8b --device cpu --context-length 8192
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            .\system1.ps1 smoke startlux-0.8b
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           } finally {
             .\system1.ps1 stop startlux-0.8b
             .\system1.ps1 dashboard stop

@@ -7,7 +7,7 @@ import queue
 import threading
 
 from common import ROOT
-from portable import identity, snapshot
+from portable import identity, snapshot, probe_port
 
 
 def load(item):
@@ -15,9 +15,7 @@ def load(item):
         return load_stdio(item)
     from startlux_decision.gguf_server import GGUFDecision
     from manage import HTTP
-    import socket
-    with socket.socket() as probe:
-        probe.bind(("127.0.0.1", item["llama_port"]))
+    probe_port("127.0.0.1", item["llama_port"])
     # One native inference slot, mmap enabled by llama.cpp's default. Only loopback
     # is exposed for the raw completion protocol; public clients use FastAPI.
     command = [item["llama_server"], "-m", item["gguf_file"], "--host", "127.0.0.1", "--port", str(item["llama_port"]),

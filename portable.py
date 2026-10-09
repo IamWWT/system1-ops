@@ -8,6 +8,17 @@ import subprocess
 import time
 
 
+def probe_port(host, port):
+    """Reject live listeners while permitting POSIX restarts with TIME_WAIT sockets."""
+    import socket
+    with socket.socket() as probe:
+        if os.name == "nt":
+            probe.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        else:
+            probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        probe.bind((host, port))
+
+
 def identity(pid):
     import psutil
     try:

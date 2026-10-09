@@ -11,7 +11,7 @@ import urllib.error
 import urllib.request
 
 from common import ROOT, DEFAULT_CONFIG, add_overrides, apply_overrides, config, preflight, load_local_environment
-from portable import file_lock, identity, tail
+from portable import file_lock, identity, tail, probe_port
 
 RUN = ROOT / "run"
 LOGS = ROOT / "logs"
@@ -54,10 +54,8 @@ def start(item, config_path, wait=True):
         print(f"{name}: already running PID={record(name)['pid']}")
         return
     native = preflight(item) if item["kind"] != "dashboard" else None
-    import socket
-    # Fail before loading GBs of weights when a port is occupied (no SO_REUSEADDR).
-    with socket.socket() as probe:
-        probe.bind((item["host"], item["port"]))
+    # Fail before loading GBs of weights, but allow a stopped server's TIME_WAIT.
+    probe_port(item["host"], item["port"])
     boot = LOGS / (name + ".console.log")
     if boot.exists():
         boot.replace(LOGS / (name + ".console.previous.log"))

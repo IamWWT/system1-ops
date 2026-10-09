@@ -19,6 +19,33 @@ from startlux_policy import cpu_dtype
 
 
 class Portable(unittest.TestCase):
+    def test_port_probe_rejects_listener(self):
+        import socket
+        from portable import probe_port
+        with socket.socket() as server:
+            server.bind(("127.0.0.1", 0))
+            server.listen()
+            with self.assertRaises(OSError):
+                probe_port("127.0.0.1", server.getsockname()[1])
+
+    @unittest.skipIf(os.name == "nt", "POSIX TIME_WAIT reuse")
+    def test_port_probe_permits_closed_server_time_wait(self):
+        import socket
+        from portable import probe_port
+        with socket.socket() as server, socket.socket() as client:
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind(("127.0.0.1", 0))
+            port = server.getsockname()[1]
+            server.listen()
+            client.connect(("127.0.0.1", port))
+            peer, _ = server.accept()
+            peer.close()
+            self.assertEqual(client.recv(1), b"")
+        with socket.socket() as plain:
+            with self.assertRaises(OSError):
+                plain.bind(("127.0.0.1", port))
+        probe_port("127.0.0.1", port)
+
     def test_bootstrap_fresh_checkout_and_preserves_local_changes(self):
         import bootstrap
         with tempfile.TemporaryDirectory() as directory:
