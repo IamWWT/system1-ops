@@ -1,10 +1,15 @@
 """Publish this committed project to the user-authorized public IamWWT repository."""
 import subprocess
+import sys
 from common import ROOT
 
 
 def run(*args, capture=False):
-    return subprocess.run(args, cwd=ROOT, check=True, text=True, capture_output=capture)
+    result = subprocess.run(args, cwd=ROOT, text=True, capture_output=capture)
+    if result.returncode and capture:
+        print(result.stderr, file=sys.stderr, end="")
+    result.check_returncode()
+    return result
 
 
 def main():

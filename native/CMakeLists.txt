@@ -10,6 +10,7 @@ find_library(GGML_LIBRARY NAMES ggml PATHS "${LLAMA_BUILD_DIR}/bin" "${LLAMA_BUI
 find_library(GGML_BASE_LIBRARY NAMES ggml-base PATHS "${LLAMA_BUILD_DIR}/bin" "${LLAMA_BUILD_DIR}/ggml/src" "${LLAMA_BUILD_DIR}/ggml/src/Release" NO_DEFAULT_PATH REQUIRED)
 add_executable(system1-native engine.cpp)
 target_include_directories(system1-native PRIVATE "${LLAMA_SOURCE_DIR}/include" "${LLAMA_SOURCE_DIR}/ggml/include" "${LLAMA_SOURCE_DIR}/vendor")
+target_compile_definitions(system1-native PRIVATE LLAMA_SHARED GGML_SHARED GGML_BACKEND_SHARED)
 target_link_libraries(system1-native PRIVATE "${LLAMA_LIBRARY}" "${GGML_LIBRARY}" "${GGML_BASE_LIBRARY}")
 set_target_properties(system1-native PROPERTIES BUILD_RPATH "$ORIGIN" RUNTIME_OUTPUT_DIRECTORY "${LLAMA_BUILD_DIR}/bin")
 
