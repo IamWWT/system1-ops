@@ -252,8 +252,13 @@ class Dashboard(unittest.IsolatedAsyncioTestCase):
         self.assertIn("setAuth", source)
         self.assertIn("localStorage", source)
         self.assertIn("检查状态", source)
+        self.assertIn("未驻留", source)
+        self.assertIn("deviceLabel", source)
         self.assertNotIn("Jev", source)
         self.assertNotIn("innerHTML", source)
+        worker_source = (ROOT / "src" / "system1_ops" / "worker.py").read_text(encoding="utf-8")
+        # /health 需同时给出实际选中设备与配置设备，UI 才能解释 auto→cpu 降级
+        self.assertIn('"configured_device": item.get("device")', worker_source)
 
     async def test_source_has_no_html_injection(self):
         source = (ROOT / "src" / "system1_ops" / "web" / "app.js").read_text(encoding="utf-8")

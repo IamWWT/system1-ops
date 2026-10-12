@@ -441,6 +441,7 @@ def create_app(item: Any, engine: Any) -> Any:
             "backend": "llama.cpp" if item.get("startlux_backend", "torch").startswith("gguf") else "torch",
             "loaded": engine.model is not None,
             "device": engine.device,
+            "configured_device": item.get("device"),
             "device_reason": engine.reason,
             "max_length": item["context_length"],
             "images": item["images"],
