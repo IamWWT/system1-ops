@@ -243,13 +243,14 @@ class Dashboard(unittest.IsolatedAsyncioTestCase):
         html = (ROOT / "src" / "system1_ops" / "web" / "index.html").read_text(encoding="utf-8")
         source = (ROOT / "src" / "system1_ops" / "web" / "app.js").read_text(encoding="utf-8")
         self.assertIn('id="checkAll"', html)
+        self.assertIn('id="clearKey"', html)
         self.assertIn("authState", html)
         self.assertNotIn("Jev 模型", html)
         self.assertNotIn("Jev 请求调试", html)
         self.assertIn("runCheck", source)
         self.assertIn("checkAll", source)
         self.assertIn("setAuth", source)
-        self.assertIn("sessionStorage", source)
+        self.assertIn("localStorage", source)
         self.assertIn("检查状态", source)
         self.assertNotIn("Jev", source)
         self.assertNotIn("innerHTML", source)
@@ -257,7 +258,8 @@ class Dashboard(unittest.IsolatedAsyncioTestCase):
     async def test_source_has_no_html_injection(self):
         source = (ROOT / "src" / "system1_ops" / "web" / "app.js").read_text(encoding="utf-8")
         self.assertNotIn("innerHTML", source)
-        self.assertNotIn("localStorage", source)
+        # 管理密钥经用户确认保存于本站 localStorage（便于刷新/重启后免重输），“清除密钥”按钮可移除
+        self.assertIn("localStorage", source)
 
 
 if __name__ == "__main__":

@@ -80,11 +80,15 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
 
     @app.get("/")
     def index() -> Any:
-        return FileResponse(pathlib.Path(__file__).parent / "web" / "index.html")
+        return FileResponse(pathlib.Path(__file__).parent / "web" / "index.html", headers={"Cache-Control": "no-store"})
 
     @app.get("/app.js")
     def javascript() -> Any:
-        return FileResponse(pathlib.Path(__file__).parent / "web" / "app.js", media_type="application/javascript")
+        return FileResponse(
+            pathlib.Path(__file__).parent / "web" / "app.js",
+            media_type="application/javascript",
+            headers={"Cache-Control": "no-store"},
+        )
 
     @app.get("/health")
     def health() -> Any:

@@ -2,31 +2,39 @@
 const $ = (id) => document.getElementById(id);
 let key = "", state = null, refreshing = false, auth = "none";
 const KEY_STORE = "system1_admin_key";
-try { key = sessionStorage.getItem(KEY_STORE) || ""; } catch (e) { key = ""; }
+function storedKey() {
+  try { return localStorage.getItem(KEY_STORE) || sessionStorage.getItem(KEY_STORE) || ""; } catch (e) { return ""; }
+}
+key = storedKey();
+function storeKey(value) {
+  try { localStorage.setItem(KEY_STORE, value); }
+  catch (e) { try { sessionStorage.setItem(KEY_STORE, value); } catch (e2) {} }
+}
+function dropKey() {
+  try { localStorage.removeItem(KEY_STORE); } catch (e) {}
+  try { sessionStorage.removeItem(KEY_STORE); } catch (e) {}
+  key = "";
+}
 const AUTH_TEXT = {
   none: "连接状态检查中…",
   needkey: "未连接 · 服务端已启用管理密钥，请输入",
   readonly: "未连接 · 服务端未启用管理密钥（只读）",
-  ok: "已连接 · 密钥有效（本标签页会话内保持，刷新不丢失；关闭标签页、修改密钥或重启运维台后需重新输入）",
+  ok: "已连接 · 密钥有效（已保存在此浏览器，刷新/重启浏览器仍有效；修改密钥或点“清除密钥”后需重新输入）",
   invalid: "密钥无效或已失效：请重新输入",
 };
 function setAuth(mode) {
   if (mode === "invalid" && auth !== "invalid") {
     key = "";
     $("key").value = "";
-    try { sessionStorage.removeItem(KEY_STORE); } catch (e) {}
+    dropKey();
   }
-  if (mode === "ok" && key) {
-    try { sessionStorage.setItem(KEY_STORE, key); } catch (e) {}
-  }
-  if (mode === "readonly") {
-    try { sessionStorage.removeItem(KEY_STORE); } catch (e) {}
-  }
+  if (mode === "ok" && key) storeKey(key);
+  if (mode === "readonly") dropKey();
   auth = mode;
   const el = $("authState");
   el.textContent = AUTH_TEXT[mode];
   el.className = "status" + (mode === "ok" ? " ok" : mode === "invalid" ? " fail" : "");
-  if (mode === "invalid") notice("管理密钥无效或已失效：请重新输入（若刚修改了 .local/.env 的 SYSTEM1_ADMIN_KEY，需先重启运维台加载新密钥）", true);
+  if (mode === "invalid") notice("管理密钥无效或已失效：已清除保存的密钥，请重新输入（若刚修改了 .local/.env 的 SYSTEM1_ADMIN_KEY，需先重启运维台加载新密钥）", true);
 }
 const checks = {}, checkLines = {};
 const notice = (message, failed = false) => { $("notice").textContent = message; $("notice").className = failed ? "fail" : ""; };
@@ -155,6 +163,15 @@ $("connect").onclick = async () => {
   if (auth === "readonly") notice("服务端未启用管理密钥，页面只读。设置 SYSTEM1_ADMIN_KEY 并重启运维台后可启用控制和调试。");
   await logs();
   await reports();
+};
+$("clearKey").onclick = async () => {
+  dropKey();
+  $("key").value = "";
+  notice("");
+  auth = "none";
+  setAuth("none");
+  await refresh();
+  notice("已清除保存在此浏览器的管理密钥。", false);
 };
 $("send").onclick = async () => {
   $("send").disabled = true;
