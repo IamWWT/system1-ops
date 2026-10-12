@@ -19,7 +19,7 @@ from typing import Any
 from .common import DEFAULT_CONFIG, ROOT, STATE, add_overrides, bearer_matches, config, load_local_environment
 from .logging_config import configure_logging
 from .manage import LOGS, RUN, record, request, start, stop
-from .portable import file_lock, hardware, tail
+from .portable import file_lock, hardware, port_listened, tail
 
 
 def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
@@ -125,6 +125,45 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
             asyncio.gather(*(blocking(status, name, item) for name, item in items.items())), blocking(hardware)
         )
         return {"models": models, "hardware": host, "controls_enabled": bool(key), "time": time.time()}
+
+    @app.get("/ops/models/{name}/check")
+    async def check_model(name: str) -> Any:
+        """On-demand status check: process, /health, load state, port and preflight."""
+        if name not in items:
+            return JSONResponse({"error": "unknown model"}, status_code=404)
+        item = items[name]
+        owned = record(name)
+        result: dict[str, Any] = {
+            "name": name,
+            "checked_at": time.time(),
+            "managed": owned is not None,
+            "pid": owned["pid"] if owned else None,
+            "port": owned["port"] if owned else item["port"],
+            "reachable": False,
+            "health": None,
+            "port_in_use": False,
+            "preflight": None,
+            "error": None,
+        }
+        if owned:
+            probe = dict(item, port=owned["port"], host=owned["host"])
+            try:
+                result["health"] = await blocking(request, probe)
+                result["reachable"] = bool(result["health"].get("status") == "ok")
+            except (OSError, ValueError, urllib.error.URLError) as error:
+                result["error"] = str(error)
+        else:
+            result["port_in_use"] = await blocking(port_listened, item["host"], item["port"])
+            if result["port_in_use"]:
+                result["error"] = f"端口 {item['port']} 被占用，可能有残留进程或其他服务"
+            else:
+                from .common import preflight
+
+                try:
+                    result["preflight"] = await blocking(preflight, item)
+                except (OSError, ValueError) as error:
+                    result["error"] = str(error)
+        return result
 
     @app.get("/ops/models/{name}/logs")
     def logs(name: str) -> Any:

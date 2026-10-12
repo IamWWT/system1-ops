@@ -22,6 +22,18 @@ def probe_port(host: str, port: int) -> None:
         probe.bind((host, port))
 
 
+def port_listened(host: str, port: int) -> bool:
+    """Connect probe: true when something answers on the model port."""
+    import socket
+
+    target = "127.0.0.1" if host in ("0.0.0.0", "::") else host
+    try:
+        with socket.create_connection((target, port), timeout=0.5):
+            return True
+    except OSError:
+        return False
+
+
 def identity(pid: int) -> float | None:
     import psutil
 

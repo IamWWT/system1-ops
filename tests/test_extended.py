@@ -217,6 +217,34 @@ class Dashboard(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(result.json()["status"], "failed")
                 self.assertIn("missing checkpoint", result.json()["error"])
 
+    async def test_check_status_endpoint(self):
+        async with await self.client() as client:
+            headers = {"Authorization": "Bearer test-admin-key"}
+            self.assertEqual((await client.get("/ops/models/no-such-model/check", headers=headers)).status_code, 404)
+            with patch("system1_ops.dashboard.record", return_value=None):
+                result = await client.get("/ops/models/laya/check", headers=headers)
+            self.assertEqual(result.status_code, 200)
+            data = result.json()
+            self.assertEqual(data["name"], "laya")
+            self.assertFalse(data["managed"])
+            self.assertFalse(data["reachable"])
+            self.assertTrue(data["preflight"] is not None or data["error"] is not None)
+
+    async def test_check_status_is_read_only(self):
+        async with await self.client("") as client:
+            result = await client.get("/ops/models/laya/check")
+            self.assertEqual(result.status_code, 200)
+            self.assertEqual(result.json()["name"], "laya")
+
+    def test_page_exposes_status_check_tool(self):
+        html = (ROOT / "src" / "system1_ops" / "web" / "index.html").read_text(encoding="utf-8")
+        source = (ROOT / "src" / "system1_ops" / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('id="checkAll"', html)
+        self.assertIn("runCheck", source)
+        self.assertIn("checkAll", source)
+        self.assertIn("检查状态", source)
+        self.assertNotIn("innerHTML", source)
+
     async def test_source_has_no_html_injection(self):
         source = (ROOT / "src" / "system1_ops" / "web" / "app.js").read_text(encoding="utf-8")
         self.assertNotIn("innerHTML", source)

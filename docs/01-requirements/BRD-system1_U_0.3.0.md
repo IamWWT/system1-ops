@@ -34,6 +34,7 @@ references:
 | R8 | 性能和数值兼容有真实数据 | benchmark、native | [[05-testing/NFTR-system1_VD_0.2.0|CPU/GPU性能报告]] |
 | R9 | 源码、测试、模板、规范和文档分层 | src、tests、configs、standards、docs | quality_gate、FILE_INDEX、doc_check |
 | R10 | 锁文件、格式、类型、构建和测试门禁 | pyproject、uv.lock、CI | Linux/Windows同一quality_gate |
+| R11 | 运维台按需状态检查：进程/健康/加载/端口占用/停止时预检，单模型与检查全部；README写明基本运维方式 | dashboard /ops/models/{name}/check、web app.js/index.html、README | 端点与认证单测、真实8885页面与切换流程验证 |
 
 ## 限制
 
@@ -54,3 +55,4 @@ Windows laptop本身和Windows Laya/4B真实权重推理仍未在该设备验收
 | 版本 | 日期 | 记录入口 |
 |---|---|---|
 | 0.3.0 | 2026-10-09 | [[04-progress/2026-10-09-complete-engineering|过程记录]]；历史基线见[[04-progress/baselines]] |
+| 0.3.0 | 2026-10-12 | R11 运维台按需状态检查与 README 基本运维说明，过程见当日日志 |
