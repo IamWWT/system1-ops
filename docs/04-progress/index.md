@@ -21,6 +21,8 @@ references:
 
 - [[04-progress/2026-10-09-host-validation|2026-10-09-host-validation.md]]
 
+- [[04-progress/2026-10-12-complete-engineering|2026-10-12-complete-engineering.md]]
+
 - [[04-progress/SESSION|SESSION.md]]
 
 - [[04-progress/baselines|baselines.md]]
