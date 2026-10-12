@@ -36,7 +36,7 @@ Windows 使用 `system1.ps1`。默认端口 8882、8883、8884 为模型，8885 
 | 目的 | 命令 |
 |---|---|
 | 预检权重/运行时/原生 | `./system1.sh doctor all`（或单模型名） |
-| 启动/停止/重启 | `./system1.sh start\|stop\|restart all|laya` |
+| 启动/停止/重启 | `./system1.sh start all`、`./system1.sh stop all`、`./system1.sh restart laya` |
 | 查看进程与健康 | `./system1.sh status laya` |
 | Jev 冒烟 | `./system1.sh smoke all` |
 | 日志（可跟随） | `./system1.sh logs startlux-4b --follow` |
@@ -87,4 +87,4 @@ uv run python scripts/quality_gate.py
 
 | 文档 | 用途 |
 |---|---|
-| [[FILE_INDEX|docs/FILE_INDEX.md]] | 查找本项目的关联文档 |
+| [[FILE_INDEX\|docs/FILE_INDEX.md]] | 查找本项目的关联文档 |
