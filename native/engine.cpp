@@ -2,6 +2,7 @@
 // HTTP, tokenization, and calibrated decision formatting remain in the gateway.
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -13,9 +14,93 @@
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
+#else
+#include <dlfcn.h>
+#include <unistd.h>
 #endif
 
 using json = nlohmann::json;
+
+#ifdef _WIN32
+static std::string executable_dir() {
+    char buffer[4096];
+    const long size = GetModuleFileNameA(nullptr, buffer, sizeof(buffer) - 1);
+    if (size <= 0) return {};
+    std::string path(buffer, size);
+    const auto pos = path.find_last_of("\\/");
+    return pos == std::string::npos ? "" : path.substr(0, pos + 1);
+}
+#else
+static std::string executable_dir() {
+    char buffer[4096];
+    const long size = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+    if (size <= 0) return {};
+    std::string path(buffer, size);
+    const auto pos = path.find_last_of('/');
+    return pos == std::string::npos ? "" : path.substr(0, pos + 1);
+}
+#endif
+
+#ifdef _WIN32
+using dl_handle = void*;
+static dl_handle open_library(const std::string& path) { return LoadLibraryA(path.c_str()); }
+static void close_library(dl_handle handle) {
+    if (handle) FreeLibrary(handle);
+}
+static void* find_symbol(dl_handle handle, const char* name) { return GetProcAddress((HMODULE)handle, name); }
+#else
+using dl_handle = void*;
+static dl_handle open_library(const std::string& path) { return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL); }
+static void close_library(dl_handle handle) {
+    if (handle) dlclose(handle);
+}
+static void* find_symbol(dl_handle handle, const char* name) { return dlsym(handle, name); }
+#endif
+
+// Pick the CPU backend plugin that best matches this machine, mirroring ggml's
+// own score-based selection, without loading GPU plugins. Loading all plugins
+// (the old behavior) initializes CUDA even with zero offloaded layers, which
+// fails or steals VRAM while another service occupies the GPU.
+static std::string select_cpu_backend() {
+    const std::string directory = executable_dir();
+    if (directory.empty()) return {};
+    std::string best;
+    int best_score = -1;
+    std::error_code ec;
+    for (const auto& entry : std::filesystem::directory_iterator(directory, ec)) {
+        std::error_code check_ec;
+        if (!entry.is_regular_file(check_ec) || check_ec) continue;
+        const std::string name = entry.path().filename().string();
+        if (name.rfind("libggml-cpu-", 0) != 0) continue;
+#ifdef _WIN32
+        const bool suffix_ok = name.size() >= 4 && name.substr(name.size() - 4) == ".dll";
+#else
+        const bool suffix_ok = name.size() >= 3 && name.substr(name.size() - 3) == ".so";
+#endif
+        if (!suffix_ok) continue;
+        const std::string path = entry.path().string();
+        dl_handle handle = open_library(path);
+        if (!handle) continue;
+        auto score_fn = reinterpret_cast<int (*)()>(find_symbol(handle, "ggml_backend_score"));
+        const int score = score_fn ? score_fn() : 0;
+        close_library(handle);
+        if (score > best_score) {
+            best_score = score;
+            best = path;
+        }
+    }
+    return best;
+}
+
+static void init_backends(const int gpu_layers) {
+    if (gpu_layers > 0) {
+        ggml_backend_load_all();
+        return;
+    }
+    const std::string cpu = select_cpu_backend();
+    if (cpu.empty()) throw std::runtime_error("CPU backend plugin (libggml-cpu-*) not found next to system1-native");
+    if (!ggml_backend_load(cpu.c_str())) throw std::runtime_error("failed to load CPU backend " + cpu);
+}
 
 static int run_engine(int argc, char** argv) {
     if (argc != 5) {
@@ -29,11 +114,12 @@ static int run_engine(int argc, char** argv) {
     int result = 0;
     try {
         const int context = std::stoi(argv[2]), threads = std::stoi(argv[3]);
+        const int gpu_layers = std::stoi(argv[4]);
         if (context < 256 || threads < 1) throw std::runtime_error("invalid context/threads");
-        ggml_backend_load_all();
+        init_backends(gpu_layers);
         llama_backend_init();
         auto mp = llama_model_default_params();
-        mp.n_gpu_layers = std::stoi(argv[4]);
+        mp.n_gpu_layers = gpu_layers;
         if (mp.n_gpu_layers != 0 && !llama_supports_gpu_offload())
             throw std::runtime_error("GPU offload requested but this native build has no GPU backend");
         model = llama_model_load_from_file(argv[1], mp);
