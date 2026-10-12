@@ -1,17 +1,26 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
 let key = "", state = null, refreshing = false, auth = "none";
+const KEY_STORE = "system1_admin_key";
+try { key = sessionStorage.getItem(KEY_STORE) || ""; } catch (e) { key = ""; }
 const AUTH_TEXT = {
   none: "连接状态检查中…",
   needkey: "未连接 · 服务端已启用管理密钥，请输入",
   readonly: "未连接 · 服务端未启用管理密钥（只读）",
-  ok: "已连接 · 密钥有效（长期有效；修改密钥或重启运维台后需重新输入，页面刷新后也需重新输入）",
+  ok: "已连接 · 密钥有效（本标签页会话内保持，刷新不丢失；关闭标签页、修改密钥或重启运维台后需重新输入）",
   invalid: "密钥无效或已失效：请重新输入",
 };
 function setAuth(mode) {
   if (mode === "invalid" && auth !== "invalid") {
     key = "";
     $("key").value = "";
+    try { sessionStorage.removeItem(KEY_STORE); } catch (e) {}
+  }
+  if (mode === "ok" && key) {
+    try { sessionStorage.setItem(KEY_STORE, key); } catch (e) {}
+  }
+  if (mode === "readonly") {
+    try { sessionStorage.removeItem(KEY_STORE); } catch (e) {}
   }
   auth = mode;
   const el = $("authState");
@@ -135,7 +144,8 @@ async function checkAll() {
 }
 $("request").value = JSON.stringify({ state: "我被重复扣款，请退还第二笔付款。", questions: { team: { type: "choice", instructions: "Which team handles this?", criteria: { billing: "Billing and refunds", technical: "Technical problems", other: "Other issues" } }, refund: { type: "noul", instructions: "Is a refund requested?" } } }, null, 2);
 $("connect").onclick = async () => {
-  key = $("key").value;
+  const entered = $("key").value;
+  if (entered) key = entered;
   $("key").value = "";
   auth = "none";
   notice("");

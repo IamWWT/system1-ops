@@ -249,6 +249,7 @@ class Dashboard(unittest.IsolatedAsyncioTestCase):
         self.assertIn("runCheck", source)
         self.assertIn("checkAll", source)
         self.assertIn("setAuth", source)
+        self.assertIn("sessionStorage", source)
         self.assertIn("检查状态", source)
         self.assertNotIn("Jev", source)
         self.assertNotIn("innerHTML", source)
