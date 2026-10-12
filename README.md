@@ -16,7 +16,7 @@ references:
 > 适用范围: System1 Ops
 > 关联: [[FILE_INDEX|全库索引]]
 
-一个统一项目管理Laya、StartLux Decision 0.8B/4B。FastAPI提供Jev API与运维页面；StartLux可用C++ llama.cpp，Laya使用PyTorch。每模型一个实例，设备、上下文、线程和卸载策略由TOML配置。
+一个统一项目管理Laya、StartLux Decision 0.8B/4B。FastAPI提供Jev兼容的决策API与运维页面（本项目模型为本地决策模型，非Jev官方模型）；StartLux可用C++ llama.cpp，Laya使用PyTorch。每模型一个实例，设备、上下文、线程和卸载策略由TOML配置。
 
 ## 快速使用
 
@@ -24,7 +24,7 @@ references:
 ./system1.sh doctor all        # 预检：权重、运行时、原生后端
 ./system1.sh start all         # 启动全部模型（等待健康检查）
 ./system1.sh dashboard start   # 启动 8885 运维台
-./system1.sh smoke all         # Jev 三题型冒烟
+./system1.sh smoke all         # 三题型冒烟（Jev接口格式）
 ```
 
 Windows 使用 `system1.ps1`。默认端口 8882、8883、8884 为模型，8885 为运维台，支持 0.0.0.0。已有部署从 .local/config.toml 和 .local/.env 读取配置；新环境从 configs 模板建立配置，详见[运行手册](docs/07-ops/RUNBOOK-system1_MG_0.3.0.md)。
@@ -38,7 +38,7 @@ Windows 使用 `system1.ps1`。默认端口 8882、8883、8884 为模型，8885 
 | 预检权重/运行时/原生 | `./system1.sh doctor all`（或单模型名） |
 | 启动/停止/重启 | `./system1.sh start all`、`./system1.sh stop all`、`./system1.sh restart laya` |
 | 查看进程与健康 | `./system1.sh status laya` |
-| Jev 冒烟 | `./system1.sh smoke all` |
+| 三题型冒烟（Jev接口） | `./system1.sh smoke all` |
 | 日志（可跟随） | `./system1.sh logs startlux-4b --follow` |
 | 单模型性能基准 | `python scripts/benchmark.py --model laya --config .local/config.toml`，或运维台卡片“性能测试” |
 | 修改设备/上下文 | `./system1.sh restart laya --device cpu --context-length 8192` |
@@ -47,7 +47,9 @@ start 会等待预检、预热与 /health 就绪；`--no-wait` 只拉起进程�
 
 ### 运维台（8885）
 
-浏览器打开 http://<host>:8885。未配置 SYSTEM1_ADMIN_KEY 时为只读页面；配置后重启运维台并在页面输入密钥，才能启动/停止/重启/性能测试。页面每 5 秒自动刷新硬件与各模型状态。
+浏览器打开 http://<host>:8885。未配置 SYSTEM1_ADMIN_KEY 时为只读页面；配置后重启运维台并在页面输入密钥、点击“连接”，才能启动/停止/重启/性能测试。页面每 5 秒自动刷新硬件与各模型状态。
+
+管理密钥状态显示在页面右上角：未连接（只读/待输入）、已连接·密钥有效、或密钥无效/已失效的明确提示。密钥不持久化，仅当前标签页内存持有，页面刷新后需重新输入；密钥长期有效，仅在修改 SYSTEM1_ADMIN_KEY 或重启运维台后失效，失效时页面给出明确提示便于重新输入。
 
 - 模型卡片：运行/加载状态、设备、精度、内存、最近耗时，以及“检查状态 / 启动 / 重启 / 停止 / 性能测试”按钮。
 - 状态检查：点击卡片“检查状态”或顶部“检查全部状态”，主动探活——进程是否存活、/health 是否健康、模型是否已加载、端口是否被占用、停止时预检（权重/运行时/原生后端）是否通过。停掉决策模型后用它确认已彻底停止；切换决策模型时，先检查目标模型预检通过，再启动目标、停止旧模型。
@@ -70,7 +72,7 @@ Linux裸机CUDA宿主；Windows CPU为迁移目标。Python3.12、FastAPI/uvicor
 ## 阅读与开发
 
 - [全库索引](docs/FILE_INDEX.md)：源码、规范与阶段文档导航。
-- [架构与目录蓝图](docs/02-design/SAD-system1_HD_0.3.0.md)：模块职责和Jev契约。
+- [架构与目录蓝图](docs/02-design/SAD-system1_HD_0.3.0.md)：模块职责和Jev兼容契约。
 - [编码与质量门禁](docs/03-plan/CODE-system1_CD_0.3.0.md)：统一开发命令和验证标准。
 - [性能报告](docs/05-testing/NFTR-system1_VD_0.2.0.md)：真实CPU/GPU数据、失败候选和限制。
 - [工程适配决策](docs/02-design/decisions/ADR-001-engineering_CD_0.2.0.md)：规范裁剪、覆盖率和兼容边界。

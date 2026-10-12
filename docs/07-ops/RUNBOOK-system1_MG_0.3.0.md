@@ -59,7 +59,7 @@ $env:SYSTEM1_NATIVE_BINARY = "$PWD\.local\vendor\llama.cpp\build-cpu\bin\Release
 
 ## 使用与日常检查
 
-Jev端口和设备由.local/config.toml决定，运维页面用宿主IP加dashboard端口。管理密钥从.local/.env读取，仅页面内存持有。log_payloads默认false；日志和运行状态不提交Git。
+模型端口和设备（API为Jev兼容接口）由.local/config.toml决定，运维页面用宿主IP加dashboard端口。管理密钥从.local/.env读取，仅当前标签页内存持有（不持久化），连接成功后长期有效；修改密钥或重启运维台后失效，页面状态栏会明确提示重新输入。log_payloads默认false；日志和运行状态不提交Git。
 
 ```bash
 ./system1.sh status all

@@ -25,7 +25,7 @@ references:
 | worker.py | 每模型单实例、API、线程池、设备策略 | 上游模型仅在加载路径导入 |
 | native_gguf.py / native/ | 原生JSONL或loopback HTTP | StartLux模板/校准 + 固定llama.cpp C API |
 | startlux_policy.py | 上游加载边界的CPU精度适配 | 不修改上游源码或全局torch |
-| dashboard.py / web/ | 管理认证、有限任务、日志、Jev调试 | 只控制项目记录的进程 |
+| dashboard.py / web/ | 管理认证、有限任务、日志、请求调试 | 只控制项目记录的进程 |
 | benchmark.py | 隔离性能/数值门槛 | 同一fixture、完整失败记录 |
 | logging_config.py | JSON行日志与异常关联 | 请求ID、可轮转文件，不记录认证header |
 | scripts/ | 兼容入口桥接与质量门禁 | 工具自身位置解析路径 |
@@ -36,8 +36,8 @@ references:
 
 1. system1.sh/ps1选择解释器，scripts/launch.py加载system1_ops.manage。
 2. manage预检并启动独立worker或dashboard，保留PID和创建时间。
-3. worker验证Jev请求；每模型串行，在有界线程池执行；超时后占锁至计算结束。
-4. StartLux使用原生子进程字母logits；Laya使用PyTorch encoder/head；统一返回Jev字段。
+3. worker校验请求（Jev接口格式）；每模型串行，在有界线程池执行；超时后占锁至计算结束。
+4. StartLux使用原生子进程字母logits；Laya使用PyTorch encoder/head；统一返回Jev兼容字段。
 5. dashboard经管理认证读取状态、启动任务和调试请求。
 
 ## 接口契约

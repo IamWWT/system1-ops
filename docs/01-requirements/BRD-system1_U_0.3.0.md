@@ -18,7 +18,7 @@ references:
 
 ## 目标
 
-使用一个维护项目提供三个模型的Jev服务、可配置设备/上下文/资源策略与轻量运维页面；结构和质量工具可迁移至Linux与Windows。
+使用一个维护项目提供三个模型的Jev兼容决策API服务、可配置设备/上下文/资源策略与轻量运维页面；结构和质量工具可迁移至Linux与Windows。
 
 ## 验收矩阵
 
@@ -26,7 +26,7 @@ references:
 |---|---|---|---|
 | R1 | 一个项目管理Laya、0.8B、4B | configs、system1_ops.manage | doctor、start/status/smoke all |
 | R2 | 8882–8885与0.0.0.0可配置 | TOML模型表、dashboard表 | 实际监听和宿主LAN地址HTTP |
-| R3 | Jev三题型及错误契约稳定 | worker.create_app、project_jev | API单测与三个真实模型smoke |
+| R3 | Jev兼容接口三题型与错误契约稳定 | worker.create_app、project_jev | API单测与三个真实模型smoke |
 | R4 | 自动设备与显存预算，明确强制设备失败 | worker.choose_device、Engine | CPU/GPU策略单测与native/GPU日志 |
 | R5 | 上下文、线程、卸载策略可调整 | common.config/preflight、Engine | 越界拒绝、64K/16K实测、低RAM串行单测 |
 | R6 | 可调试运维页面、管理认证、日志 | dashboard、web、logging_config | ASGI认证/控制、真实浏览器、JSON日志单测 |

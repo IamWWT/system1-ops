@@ -1,13 +1,35 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
-let key = "", state = null, refreshing = false;
+let key = "", state = null, refreshing = false, auth = "none";
+const AUTH_TEXT = {
+  none: "连接状态检查中…",
+  needkey: "未连接 · 服务端已启用管理密钥，请输入",
+  readonly: "未连接 · 服务端未启用管理密钥（只读）",
+  ok: "已连接 · 密钥有效（长期有效；修改密钥或重启运维台后需重新输入，页面刷新后也需重新输入）",
+  invalid: "密钥无效或已失效：请重新输入",
+};
+function setAuth(mode) {
+  if (mode === "invalid" && auth !== "invalid") {
+    key = "";
+    $("key").value = "";
+  }
+  auth = mode;
+  const el = $("authState");
+  el.textContent = AUTH_TEXT[mode];
+  el.className = "status" + (mode === "ok" ? " ok" : mode === "invalid" ? " fail" : "");
+  if (mode === "invalid") notice("管理密钥无效或已失效：请重新输入（若刚修改了 .local/.env 的 SYSTEM1_ADMIN_KEY，需先重启运维台加载新密钥）", true);
+}
 const checks = {}, checkLines = {};
 const notice = (message, failed = false) => { $("notice").textContent = message; $("notice").className = failed ? "fail" : ""; };
 async function api(path, options = {}) {
   const headers = { ...(options.headers || {}) };
   if (key) headers.Authorization = `Bearer ${key}`;
   const response = await fetch(path, { ...options, headers });
-  const body = await response.json();
+  const body = await response.json().catch(() => ({}));
+  if (response.status === 401) {
+    setAuth(key ? "invalid" : "needkey");
+    throw new Error(body.error || `HTTP ${response.status}`);
+  }
   if (!response.ok) throw new Error(body.error || `HTTP ${response.status}`);
   return body;
 }
@@ -50,13 +72,16 @@ function models(rows) {
 }
 async function refresh() {
   if (refreshing) return;
+  if (auth === "invalid") return;
   refreshing = true;
   try {
     state = await api("/ops/state"); const host = state.hardware;
+    setAuth(state.controls_enabled ? "ok" : "readonly");
     $("hardware").replaceChildren(text("span", `${host.platform} / ${host.machine}`), text("span", `CPU ${host.physical_cores ?? "?"} 核 / ${host.logical_cores} 线程 · ${host.cpu_percent}%`), text("span", `可用 RAM ${(host.ram_available_mb / 1024).toFixed(1)} / ${(host.ram_total_mb / 1024).toFixed(1)} GiB`), text("span", host.gpus.length ? host.gpus.map((gpu) => `${gpu.name} · 可用 ${(gpu.free_mb / 1024).toFixed(1)} GiB`).join(" | ") : "GPU 不可见 / 未安装"));
     models(state.models);
-    if (!state.controls_enabled) notice("只读模式：设置 SYSTEM1_ADMIN_KEY 后重新启动运维台，可启用控制和调试。");
-  } catch (error) { notice(error.message, true); } finally { refreshing = false; }
+  } catch (error) {
+    if (auth !== "invalid" && auth !== "needkey") notice(error.message, true);
+  } finally { refreshing = false; }
 }
 async function logs() { try { if ($("logModel").value) $("logs").textContent = (await api(`/ops/models/${encodeURIComponent($("logModel").value)}/logs`)).text || "暂无日志"; } catch (error) { $("logs").textContent = error.message; } }
 async function reports() {
@@ -109,11 +134,22 @@ async function checkAll() {
   } finally { $("checkAll").disabled = false; }
 }
 $("request").value = JSON.stringify({ state: "我被重复扣款，请退还第二笔付款。", questions: { team: { type: "choice", instructions: "Which team handles this?", criteria: { billing: "Billing and refunds", technical: "Technical problems", other: "Other issues" } }, refund: { type: "noul", instructions: "Is a refund requested?" } } }, null, 2);
-$("connect").onclick = async () => { key = $("key").value; $("key").value = ""; notice(""); await refresh(); await logs(); await reports(); };
+$("connect").onclick = async () => {
+  key = $("key").value;
+  $("key").value = "";
+  auth = "none";
+  notice("");
+  setAuth("none");
+  await refresh();
+  if (auth === "invalid") return;
+  if (auth === "readonly") notice("服务端未启用管理密钥，页面只读。设置 SYSTEM1_ADMIN_KEY 并重启运维台后可启用控制和调试。");
+  await logs();
+  await reports();
+};
 $("send").onclick = async () => {
   $("send").disabled = true;
   try { const body = JSON.parse($("request").value); const result = await api(`/ops/debug/${encodeURIComponent($("debugModel").value)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); $("debugMeta").textContent = `HTTP ${result.http_status} · ${result.latency_ms.toFixed(1)} ms`; $("response").textContent = JSON.stringify(result.body, null, 2); await refresh(); await logs(); }
   catch (error) { $("response").textContent = error.message; } finally { $("send").disabled = false; }
 };
 $("refreshLogs").onclick = logs; $("logModel").onchange = logs; $("refreshReports").onclick = reports; $("checkAll").onclick = checkAll;
-refresh().then(() => { logs(); reports(); }); setInterval(() => { refresh(); if ($("live").checked) logs(); }, 5000);
+refresh().then(() => { logs(); reports(); }); setInterval(() => { if (auth !== "invalid") { refresh(); if ($("live").checked) logs(); } }, 5000);
