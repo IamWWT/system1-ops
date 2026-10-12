@@ -21,7 +21,17 @@ ROOT_FILES = {
     ".python-version",
 }
 ROOT_DIRS = {"src", "native", "tests", "scripts", "configs", "docs", "standards", ".github"}
-IGNORED = {".git", ".local", ".native-build", ".uv-cache", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
+IGNORED = {
+    ".git",
+    ".local",
+    ".native-build",
+    ".uv-cache",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".pi.r",
+}
 
 
 def maintained_files(root: Path = ROOT) -> list[Path]:
@@ -30,7 +40,9 @@ def maintained_files(root: Path = ROOT) -> list[Path]:
         names[:] = sorted(
             n for n in names if n not in IGNORED and not n.startswith(".venv") and not n.endswith(".egg-info")
         )
-        result.extend(Path(directory) / name for name in sorted(files) if not name.endswith(".pyc"))
+        result.extend(
+            Path(directory) / name for name in sorted(files) if not name.endswith(".pyc") and name not in IGNORED
+        )
     return sorted(result)
 
 
