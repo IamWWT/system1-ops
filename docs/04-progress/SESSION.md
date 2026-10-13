@@ -2,7 +2,7 @@
 
 ## 已完成
 
-定位并修复“刷新后仍丢失登录”：真因有二——浏览器执行缓存的旧版app.js（静态页无Cache-Control、脚本无版本号），以及密钥原先仅存页面内存。修复：运维台对/与/app.js返回Cache-Control:no-store，页面加载/app.js?v=20261012c强制取新版；密钥连接成功后保存至localStorage（fallback sessionStorage），刷新/新标签页/重启浏览器后自动恢复，新增“清除密钥”按钮，服务端密钥变更时自动清除并明确提示重输。Playwright真实Chromium对活动8885端到端验证9/9通过（新浏览器提示输入→输入连接→新标签页自动连接→刷新保持→模拟重启浏览器自动连接→清除密钥→清除后刷新不再自动→重输恢复），截图存.local/evidence/2026-10-12-key-persist/。36项单测与完整quality_gate通过；RUNBOOK/README密钥语义同步更新。
+定位并修复“状态检查把正常运行的服务误报为异常”：用户报告三模型卡片检查后均显示“已停止 · 端口 8882/8883/8884 被占用，可能有残留进程或其他服务”，实际三端口都由本模型实例正常服务（/health status=ok）。真因：/ops/models/{name}/check 与 /ops/state 卡片状态只认 .local/run/<name>.json 管理记录，记录缺失或失效时不辨认占用者，直接按“端口在用=异常”处理。修复：占用者按 /health 的 model 字段辨别（复用 request() 既有校验），是本模型实例时报“运行中（未纳入管理记录，本页无法停止）”并带出真实设备/内存/请求数，仅外来进程或其它模型才报端口冲突；/ops/state 新增 unmanaged 字段，卡片状态显示“● 运行中（未纳管 · 已驻留/按需加载）”。验证：39项单测（原36+3新增/更新）与可用质量门全通过（ruff check/format、mypy三平台、pytest、coverage 40%、doc_check、node --check、uv build/artifact_check、bash -n）；clang-format本机缺依赖未跑（本次未触碰native代码）。真实链路：以进程内 dashboard 对准在跑的8882/8883/8884，三模型由“端口被占用”变为 running/unmanaged/reachable 且带出 health（laya rss510.8MB、0.8b 329MB、4b 5457.5MB）；另构造两类假占用者（外来HTTP服务、另一模型在8883）实测仍正确报端口冲突。
 
 ## 进行中
 
@@ -10,4 +10,4 @@
 
 ## 下一步 + 待确认
 
-本轮无待实现项；待用户在自己浏览器硬刷新一次（Ctrl+Shift+R）拉取新版app.js后复核：刷新/关闭重开浏览器保持登录、右上角状态指示、清除密钥按钮。若用户浏览器为无痕/严格隐私模式禁用了站点存储，则密钥无法跨刷新保存，需改用普通窗口。长期欠账不变：覆盖提升、大函数拆分、Windows laptop Laya/4B真机测试。用户约定仅main+最新tag。
+本轮无待实现项；待用户在自己浏览器硬刷新（Ctrl+Shift+R）后复核三模型检查结果应为“运行中（未纳入管理记录）”，不再是端口冲突。若希望本页能停止这些实例，需要把它们纳入管理记录（用 system1.sh/运维台启停）或为检查端点增加按端口反查 PID 的接管能力——两者都属新增能力，需用户确认范围。长期欠账不变：覆盖提升、大函数拆分、Windows laptop Laya/4B真机测试。用户约定仅main+最新tag。

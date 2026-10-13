@@ -57,11 +57,18 @@ const deviceLabel = (health, configured) => {
   const cfg = health?.configured_device || configured;
   return cfg && actual && String(cfg) !== String(actual) ? `${actual}（配置 ${cfg}）` : actual;
 };
+// 健康摘要：驻留状态 + 实际设备 + 精度/内存/最近耗时；受管与未纳管实例共用同一段描述。
+const healthText = (health) => `${health.loaded ? "模型已驻留" : "模型未驻留（按需加载，请求时自动加载）"}${health.device ? ` · ${deviceLabel(health, health.configured_device)}` : ""}${health.precision ? ` · ${health.precision}` : ""}${health.rss_mb ? ` · ${health.rss_mb} MiB` : ""}${health.metrics?.last_latency_ms != null ? ` · 最近 ${health.metrics.last_latency_ms} ms` : ""}`;
 function models(rows) {
   $("models").replaceChildren();
   for (const row of rows) {
     const card = text("article", "", "card"), health = row.health;
-    card.append(text("h2", row.name), text("div", health ? (health.loaded ? "● 已驻留" : "● 未驻留（按需加载）") : row.running ? "● 启动中 / 未就绪" : "○ 已停止", `status ${health ? "ok" : ""}`));
+    const stateLabel = health
+      ? row.unmanaged
+        ? (health.loaded ? "● 运行中（未纳管 · 已驻留）" : "● 运行中（未纳管 · 按需加载）")
+        : (health.loaded ? "● 已驻留" : "● 未驻留（按需加载）")
+      : row.running ? "● 启动中 / 未就绪" : "○ 已停止";
+    card.append(text("h2", row.name), text("div", stateLabel, `status ${health ? "ok" : ""}`));
     const values = { 端口: row.port, 设备: deviceLabel(health, row.config.device), 精度: health?.precision || "—", 内存: health?.rss_mb ? `${health.rss_mb} MiB` : "—", 上下文: health?.max_length || row.config.context_length, 最近耗时: health?.metrics?.last_latency_ms != null ? `${health.metrics.last_latency_ms} ms` : "—", 请求数: health?.metrics?.requests ?? "—" };
     const dl = document.createElement("dl");
     for (const [label, value] of Object.entries(values)) dl.append(text("dt", label), text("dd", String(value)));
@@ -133,9 +140,10 @@ async function runCheck(name) {
     let detail;
     if (data.managed) {
       detail = data.reachable && data.health
-        ? `运行中 · ${data.health.loaded ? "模型已驻留" : "模型未驻留（按需加载，请求时自动加载）"}${data.health.device ? ` · ${deviceLabel(data.health, data.health.configured_device)}` : ""}${data.health.precision ? ` · ${data.health.precision}` : ""}${data.health.rss_mb ? ` · ${data.health.rss_mb} MiB` : ""}${data.health.metrics?.last_latency_ms != null ? ` · 最近 ${data.health.metrics.last_latency_ms} ms` : ""}`
+        ? `运行中 · ${healthText(data.health)}`
         : `进程 ${data.pid} 在运行，但健康检查未通过：${data.error || "无响应"}`;
-    } else if (data.port_in_use) detail = `已停止 · 端口 ${data.port} 被占用，可能有残留进程或其他服务`;
+    } else if (data.unmanaged && data.health) detail = `运行中（未纳入管理记录，本页无法停止）· ${healthText(data.health)}`;
+    else if (data.port_in_use) detail = `已停止 · 端口 ${data.port} 被占用，可能有残留进程或其他服务`;
     else if (data.error) detail = `已停止 · 预检失败：${data.error}`;
     else detail = `已停止 · 端口 ${data.port} 空闲 · 预检通过，可启动`;
     checks[name] = { text: `${new Date(data.checked_at * 1000).toLocaleTimeString("zh-CN", { hour12: false })} · ${detail}`, failed: data.error != null || (data.managed && !data.reachable) };

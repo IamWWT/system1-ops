@@ -224,14 +224,68 @@ class Dashboard(unittest.IsolatedAsyncioTestCase):
         async with await self.client() as client:
             headers = {"Authorization": "Bearer test-admin-key"}
             self.assertEqual((await client.get("/ops/models/no-such-model/check", headers=headers)).status_code, 404)
-            with patch("system1_ops.dashboard.record", return_value=None):
+            with (
+                patch("system1_ops.dashboard.record", return_value=None),
+                patch("system1_ops.dashboard.port_listened", return_value=False),
+            ):
                 result = await client.get("/ops/models/laya/check", headers=headers)
             self.assertEqual(result.status_code, 200)
             data = result.json()
             self.assertEqual(data["name"], "laya")
             self.assertFalse(data["managed"])
+            self.assertFalse(data["unmanaged"])
             self.assertFalse(data["reachable"])
             self.assertTrue(data["preflight"] is not None or data["error"] is not None)
+
+    async def test_check_reports_unmanaged_running_instance(self):
+        # 端口被本模型自己的实例占用但没有管理记录（如进程不由本记录跟踪）时，
+        # 检查结果应报“运行中（未纳管）”，而不是“已停止 + 端口被占用”。
+        async with await self.client() as client:
+            headers = {"Authorization": "Bearer test-admin-key"}
+            health = {"status": "ok", "model": "laya", "loaded": False, "device": "cpu", "rss_mb": 512.0}
+            with (
+                patch("system1_ops.dashboard.record", return_value=None),
+                patch("system1_ops.dashboard.port_listened", return_value=True),
+                patch("system1_ops.dashboard.request", return_value=health),
+            ):
+                data = (await client.get("/ops/models/laya/check", headers=headers)).json()
+            self.assertTrue(data["port_in_use"])
+            self.assertTrue(data["unmanaged"])
+            self.assertTrue(data["reachable"])
+            self.assertIsNone(data["error"])
+            self.assertEqual(data["health"]["model"], "laya")
+
+    async def test_check_flags_port_held_by_another_service(self):
+        # 占用者不是本模型（request 校验 /health 的 model 字段失败）时，仍按端口冲突报告。
+        async with await self.client() as client:
+            headers = {"Authorization": "Bearer test-admin-key"}
+            with (
+                patch("system1_ops.dashboard.record", return_value=None),
+                patch("system1_ops.dashboard.port_listened", return_value=True),
+                patch("system1_ops.dashboard.request", side_effect=ValueError("port occupied by another model")),
+            ):
+                data = (await client.get("/ops/models/laya/check", headers=headers)).json()
+            self.assertTrue(data["port_in_use"])
+            self.assertFalse(data["unmanaged"])
+            self.assertFalse(data["reachable"])
+            self.assertIn("被占用", data["error"])
+
+    async def test_state_marks_unmanaged_instance_running(self):
+        # 运维台卡片同样按“运行中（未纳管）”呈现，并把真实 health 数据带出来，不再显示“已停止”。
+        async with await self.client() as client:
+            headers = {"Authorization": "Bearer test-admin-key"}
+            health = {"status": "ok", "model": "laya", "loaded": True, "device": "cpu", "rss_mb": 512.0}
+            with (
+                patch("system1_ops.dashboard.record", return_value=None),
+                patch("system1_ops.dashboard.port_listened", return_value=True),
+                patch("system1_ops.dashboard.request", return_value=health),
+            ):
+                state = (await client.get("/ops/state", headers=headers)).json()
+            row = next(item for item in state["models"] if item["name"] == "laya")
+            self.assertTrue(row["running"])
+            self.assertTrue(row["unmanaged"])
+            self.assertIsNone(row["error"])
+            self.assertEqual(row["health"]["rss_mb"], 512.0)
 
     async def test_check_status_is_read_only(self):
         async with await self.client("") as client:

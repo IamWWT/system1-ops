@@ -36,6 +36,8 @@ references:
 
 “读取dsh-agent-presets engineering相关工程编码规范，按照规范组织当前项目。”
 
+“http://localhost:8885/ 有bug, 修复一下, 点击三个检查,显示异常,但是其实正常,其实就是这三个模型占用了这三个端口（画面：laya/startlux-0.8b/startlux-4b 三卡均显示“已停止 · 端口 8882/8883/8884 被占用，可能有残留进程或其他服务”）”（2026-10-13）
+
 ## 提炼范围
 
 目标项目仅为本仓 System1 Ops。工程规范来源见标准快照 `standards/source.json`；不修改 dsh-agent-presets、上游模型源仓库或用户原始权重。目录和质量门禁重构复用已授权的维护、真机测试和公开推送范围。

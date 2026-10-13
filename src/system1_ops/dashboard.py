@@ -100,6 +100,7 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
             "name": name,
             "port": item["port"],
             "running": owned is not None,
+            "unmanaged": False,
             "health": None,
             "error": None,
             "config": item,
@@ -117,6 +118,17 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
         else:
             from .common import preflight
 
+            if port_listened(item["host"], item["port"]):
+                # 无管理记录但端口在用：占用者可能是本模型的实例（进程不由本记录跟踪），
+                # 这时按“运行中（未纳入管理记录）”呈现，而不是报“已停止 + 端口被占用”。
+                try:
+                    output["health"] = request(item)
+                except (OSError, ValueError, urllib.error.URLError):
+                    output["error"] = f"端口 {item['port']} 被占用，可能有残留进程或其他服务"
+                else:
+                    output["running"] = True
+                    output["unmanaged"] = True
+                return output
             try:
                 preflight(item)
             except (OSError, ValueError) as error:
@@ -141,6 +153,7 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
             "name": name,
             "checked_at": time.time(),
             "managed": owned is not None,
+            "unmanaged": False,
             "pid": owned["pid"] if owned else None,
             "port": owned["port"] if owned else item["port"],
             "reachable": False,
@@ -159,7 +172,14 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
         else:
             result["port_in_use"] = await blocking(port_listened, item["host"], item["port"])
             if result["port_in_use"]:
-                result["error"] = f"端口 {item['port']} 被占用，可能有残留进程或其他服务"
+                # 端口在用不等于异常：占用者可能正是本模型的实例，只是没有管理记录跟踪它。
+                # request() 校验 /health 的 model 字段，占用者不是本模型时抛 ValueError。
+                try:
+                    result["health"] = await blocking(request, item)
+                    result["reachable"] = bool(result["health"].get("status") == "ok")
+                    result["unmanaged"] = True
+                except (OSError, ValueError, urllib.error.URLError):
+                    result["error"] = f"端口 {item['port']} 被占用，可能有残留进程或其他服务"
             else:
                 from .common import preflight
 
