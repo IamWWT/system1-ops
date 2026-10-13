@@ -70,7 +70,7 @@ $env:SYSTEM1_NATIVE_BINARY = "$PWD\.local\vendor\llama.cpp\build-cpu\bin\Release
 ./system1.sh dashboard stop
 ```
 
-start等待预检/预加载warm-up/健康；--no-wait只建进程。preload=false按需加载，空闲卸载不停止HTTP。有管理记录时按PID+创建时间匹配停止；**无可用记录但配置端口上确认是本模型实例**（`/health` 精确回 `model=<本模型>`）时，stop/restart 会按端口反查监听PID并接管该实例，start 则报告“already running (no record)”而不重复启动；`/health` 未标明本模型时一律不动，绝不接管非项目进程。进程异常无自动重启；systemd/Task Scheduler可由用户部署场景接管。
+start等待预检/预加载warm-up/健康；--no-wait只建进程。preload=false按需加载，空闲卸载不停止HTTP。有管理记录时按PID+创建时间匹配停止；**无可用记录但配置端口上确认是本模型实例**（`/health` 精确回 `model=<本模型>`）时，stop/restart 会按端口反查监听PID并接管该实例，start 则报告“already running (no record)”而不重复启动；`/health` 未标明本模型时一律不动，绝不接管非项目进程。**接管只结束占用该端口的那个进程本身**（优雅SIGTERM，超时对该PID升级KILL），不连带它的子进程——子进程可能正是其它服务（模型常由运维台启动而成为其子进程）；同理停止运维台也只结束运维台本身，不会停掉它启动的模型。仅模型worker的记录路径才连带结束其运行部件（如原生GGUF助手）。进程异常无自动重启；systemd/Task Scheduler可由用户部署场景接管。
 
 ## 故障与证据
 
@@ -84,6 +84,7 @@ start等待预检/预加载warm-up/健康；--no-wait只建进程。preload=fals
 | 端口占用 | 先查实际listener（`ss -ltnp \| grep <端口>`）；是本项目实例则 `./system1.sh stop <模型>` 或 `stop all` 接管（无记录也能按端口反查PID结束）；非项目进程manager不覆盖，POSIX允许停止服务TIME_WAIT重用 |
 | 停止报 not running 但端口仍监听 | 该实例没有可用管理记录：确认是本项目实例后用stop/restart接管；若提示无法解析PID（跨进程命名空间等），在该实例宿主上按端口手动结束再启动 |
 | dashboard start 报地址被占用 | 旧运维台未被记录跟踪：`./system1.sh dashboard stop`（现可接管）后再 `dashboard start`；必要时手动结束后重试 |
+| 停止/接管后其它模型也停了 | 已修复的隐患：模型若由运维台启动即为其子进程，早期接管会连带结束子树；现接管与运维台停止都只结束目标进程本身，模型worker仅在记录路径下连带清理原生助手 |
 
 JSON日志在.local/logs/<model>.log、dashboard.log；依赖启动在.console.log，原生输出在.native.log。异常堆栈保存完整。管理HTTP审计记录actor/client/path/status/latency与request_id，不打印认证token。原生日志按重新加载时大小轮转。
 

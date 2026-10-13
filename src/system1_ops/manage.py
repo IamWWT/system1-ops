@@ -153,13 +153,16 @@ def untracked_instance(item: Any) -> Any:
     return payload if payload.get("model") == item["name"] else None
 
 
-def terminate_tree(pid: Any, starttime: Any = None) -> Any:
-    """Terminate a process and its children; escalate to kill while the identity persists."""
+def terminate_process(pid: Any, starttime: Any = None) -> Any:
+    """Terminate one process and nothing else; escalate to kill while its identity persists.
+
+    Graceful SIGTERM lets a worker run its own shutdown (engine unload, native helper
+    stop) and lets a manager exit without touching the services it launched.
+    """
     import psutil
 
     try:
         process = psutil.Process(pid)
-        children = process.children(recursive=True)
     except psutil.NoSuchProcess:
         return
     moment = identity(pid) if starttime is None else starttime
@@ -169,6 +172,21 @@ def terminate_tree(pid: Any, starttime: Any = None) -> Any:
         time.sleep(0.2)
     if moment is not None and identity(pid) == moment:
         process.kill()
+
+
+def terminate_tree(pid: Any, starttime: Any = None) -> Any:
+    """Terminate a worker and its runtime children, e.g. the native GGUF helper.
+
+    Only a model worker owns such children. A manager keeps the services it launched
+    as children, so stopping or taking over one must never use this.
+    """
+    import psutil
+
+    try:
+        children = psutil.Process(pid).children(recursive=True)
+    except psutil.NoSuchProcess:
+        children = []
+    terminate_process(pid, starttime)
     for child in children:
         try:
             child.terminate()
@@ -181,8 +199,13 @@ def terminate_tree(pid: Any, starttime: Any = None) -> Any:
 
 def stop(name: Any, item: Any = None) -> Any:
     value = record(name)
+    managed_by_dashboard = item is not None and item.get("kind") == "dashboard"
     if value:
-        terminate_tree(value["pid"], value["starttime"])
+        # 运维台的子进程是它启动的模型服务，不是它自己的运行部件：只结束运维台本身。
+        if managed_by_dashboard:
+            terminate_process(value["pid"], value["starttime"])
+        else:
+            terminate_tree(value["pid"], value["starttime"])
         print(f"{name}: stopped PID={value['pid']}")
     elif item is not None and port_listened(item["host"], item["port"]) and untracked_instance(item):
         # 端口被本模型自己的实例占用，但没有可用的管理记录（例如进程在本记录之外启动）：
@@ -193,8 +216,10 @@ def stop(name: Any, item: Any = None) -> Any:
                 f"{name}: 端口 {item['port']} 上确认是本模型实例，但本进程无法解析它的 PID；"
                 f"请在该实例的宿主上手动结束它（如 ss -ltnp | grep {item['port']}）后重试"
             )
+        # 只结束占用端口的那个进程本身：它的子进程可能正是其它服务（如运维台启的模型），
+        # 优雅 SIGTERM 会让它自己收尾原生助手等部件。
         for pid in pids:
-            terminate_tree(pid)
+            terminate_process(pid)
         print(f"{name}: stopped untracked PID={','.join(str(pid) for pid in pids)} port={item['port']}")
     else:
         print(f"{name}: not running")

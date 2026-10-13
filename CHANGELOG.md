@@ -16,3 +16,4 @@
 - 2026-10-12：运维台新增按需状态检查（模型卡片“检查状态”与“检查全部”，GET /ops/models/{name}/check：进程/健康/加载/端口占用/停止时预检，只读端点），覆盖停模型确认与切换决策模型场景；README补全基本运维方式与模型切换流程（R11）。
 - 2026-10-13：修复状态检查把“本模型实例占用的端口”误报为异常——占用者按 /health 的 model 字段辨认，是自身实例时报“运行中（未纳入管理记录）”并带出真实设备/内存/请求数，仅外来进程或其它模型才报端口冲突；卡片状态同步（running/unmanaged + health）。新增3个回归用例；/ops/state 增加 unmanaged 字段。
 - 2026-10-13：stop/restart 增加“接管未纳管实例”：无可用管理记录但配置端口上 `/health` 精确回 `model=<本模型>` 时，按端口反查监听 PID（`portable.listener_pids`）并结束进程树（`manage.terminate_tree`）；`stop` 拆出统一终止逻辑，`start` 对未纳管实例报告“already running (no record)”而不报原始端口异常；`/health` 未标明本模型或无法解析 PID 时一律不动并给出明确提示。新增6个回归用例；RUNBOOK/README 同步接管语义。
+- 2026-10-13：修复接管与运维台停止的连带结束缺陷——新增 `manage.terminate_process`（单进程，优雅SIGTERM→必要时对该PID升级KILL）；接管路径与 `kind=dashboard` 的记录路径只结束目标进程本身，`terminate_tree`（含原生助手清理）仅保留给模型worker的记录路径。背景：线上运维台的子进程正是它启动的三个模型服务，早期接管把它们一并优雅停止了。新增2个防连带用例（共47项）；RUNBOOK 补“停止/接管后其它模型也停了”排查行。

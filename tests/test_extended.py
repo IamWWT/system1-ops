@@ -22,6 +22,36 @@ from system1_ops.portable import file_lock, identity, snapshot, tail
 from system1_ops.startlux_policy import cpu_dtype
 
 
+class ProcessStub:
+    """Minimal psutil.Process stand-in: reports itself gone once terminated."""
+
+    def __init__(self, children=()):
+        self.terminated = False
+        self.killed = False
+        self._children = list(children)
+
+    def status(self):
+        if self.terminated:
+            raise psutil.NoSuchProcess(os.getpid())
+        return psutil.STATUS_RUNNING
+
+    def create_time(self):
+        return 100.0
+
+    def children(self, recursive=True):
+        return list(self._children)
+
+    def terminate(self):
+        self.terminated = True
+
+    def kill(self):
+        self.terminated = True
+        self.killed = True
+
+    def wait(self, timeout=None):
+        return 0
+
+
 class Portable(unittest.TestCase):
     def test_port_probe_rejects_listener(self):
         import socket
@@ -76,28 +106,7 @@ class Portable(unittest.TestCase):
     def test_stop_takes_over_untracked_instance(self):
         from system1_ops import manage
 
-        class FakeProcess:
-            def __init__(self):
-                self.terminated = False
-
-            def status(self):
-                if self.terminated:
-                    raise psutil.NoSuchProcess(os.getpid())
-                return psutil.STATUS_RUNNING
-
-            def create_time(self):
-                return 100.0
-
-            def children(self, recursive=True):
-                return []
-
-            def terminate(self):
-                self.terminated = True
-
-            def kill(self):
-                self.terminated = True
-
-        fake = FakeProcess()
+        fake = ProcessStub()
         printed = io.StringIO()
         item = {"name": "laya", "host": "0.0.0.0", "port": 8882, "api_key_env": "SYSTEM1_API_KEY"}
         with (
@@ -112,6 +121,50 @@ class Portable(unittest.TestCase):
             manage.stop("laya", item)
         self.assertTrue(fake.terminated)
         self.assertIn("stopped untracked PID=4242", printed.getvalue())
+
+    def test_takeover_keeps_services_started_by_that_process(self):
+        # 占端口的实例若是运维台这类“启动别的服务”的进程，接管只能结束它本身，
+        # 否则会把它的子进程（模型服务）一起带走。
+        from system1_ops import manage
+
+        worker, parent = ProcessStub(), ProcessStub()
+        parent._children = [worker]
+        printed = io.StringIO()
+        item = {"name": "dashboard", "host": "0.0.0.0", "port": 8885, "api_key_env": "SYSTEM1_ADMIN_KEY"}
+        with (
+            patch("system1_ops.manage.RUN", pathlib.Path(tempfile.mkdtemp())),
+            patch("system1_ops.manage.record", return_value=None),
+            patch("system1_ops.manage.port_listened", return_value=True),
+            patch("system1_ops.manage.untracked_instance", return_value={"status": "ok", "model": "dashboard"}),
+            patch("system1_ops.manage.listener_pids", return_value=[4242]),
+            patch("psutil.Process", return_value=parent),
+            redirect_stdout(printed),
+        ):
+            manage.stop("dashboard", item)
+        self.assertTrue(parent.terminated)
+        self.assertFalse(worker.terminated)
+        self.assertIn("stopped untracked PID=4242", printed.getvalue())
+
+    def test_stop_of_dashboard_keeps_services_started_by_it(self):
+        from system1_ops import manage
+
+        worker, parent = ProcessStub(), ProcessStub()
+        parent._children = [worker]
+        printed = io.StringIO()
+        item = {"name": "dashboard", "kind": "dashboard", "host": "0.0.0.0", "port": 8885}
+        with (
+            patch("system1_ops.manage.RUN", pathlib.Path(tempfile.mkdtemp())),
+            patch(
+                "system1_ops.manage.record",
+                return_value={"pid": 1310219, "starttime": 100.0, "port": 8885, "host": "0.0.0.0"},
+            ),
+            patch("psutil.Process", return_value=parent),
+            redirect_stdout(printed),
+        ):
+            manage.stop("dashboard", item)
+        self.assertTrue(parent.terminated)
+        self.assertFalse(worker.terminated)
+        self.assertIn("stopped PID=1310219", printed.getvalue())
 
     def test_stop_leaves_foreign_listener_alone(self):
         from system1_ops import manage
