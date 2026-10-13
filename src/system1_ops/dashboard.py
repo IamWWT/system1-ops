@@ -267,7 +267,7 @@ def create_dashboard(config_path: Any = DEFAULT_CONFIG) -> Any:
             else:
                 with file_lock(RUN / "manage.lock"):
                     if action in ("stop", "restart"):
-                        stop(name)
+                        stop(name, items[name])
                     if action in ("start", "restart"):
                         start(items[name], pathlib.Path(config_path).resolve())
 

@@ -1,6 +1,7 @@
 """Portable lifecycle ownership, benchmark gates and dashboard controls."""
 
 import asyncio
+import io
 import json
 import os
 import pathlib
@@ -8,9 +9,11 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from unittest.mock import patch
 
 import httpx
+import psutil
 
 from system1_ops.benchmark import compatibility, fixtures
 from system1_ops.common import DEFAULT_CONFIG, ROOT, config, preflight
@@ -50,6 +53,114 @@ class Portable(unittest.TestCase):
             with self.assertRaises(OSError):
                 plain.bind(("127.0.0.1", port))
         probe_port("127.0.0.1", port)
+
+    def test_listener_pids_resolves_own_listener(self):
+        import socket
+
+        from system1_ops.portable import listener_pids
+
+        with socket.socket() as server:
+            server.bind(("127.0.0.1", 0))
+            server.listen()
+            self.assertIn(os.getpid(), listener_pids(server.getsockname()[1]))
+
+    def test_untracked_instance_requires_exact_model_match(self):
+        from system1_ops import manage
+
+        item = {"name": "laya", "host": "0.0.0.0", "port": 8882, "api_key_env": "SYSTEM1_API_KEY"}
+        with patch("system1_ops.manage.request", return_value={"status": "ok"}):
+            self.assertIsNone(manage.untracked_instance(item))
+        with patch("system1_ops.manage.request", return_value={"status": "ok", "model": "laya"}):
+            self.assertIsNotNone(manage.untracked_instance(item))
+
+    def test_stop_takes_over_untracked_instance(self):
+        from system1_ops import manage
+
+        class FakeProcess:
+            def __init__(self):
+                self.terminated = False
+
+            def status(self):
+                if self.terminated:
+                    raise psutil.NoSuchProcess(os.getpid())
+                return psutil.STATUS_RUNNING
+
+            def create_time(self):
+                return 100.0
+
+            def children(self, recursive=True):
+                return []
+
+            def terminate(self):
+                self.terminated = True
+
+            def kill(self):
+                self.terminated = True
+
+        fake = FakeProcess()
+        printed = io.StringIO()
+        item = {"name": "laya", "host": "0.0.0.0", "port": 8882, "api_key_env": "SYSTEM1_API_KEY"}
+        with (
+            patch("system1_ops.manage.RUN", pathlib.Path(tempfile.mkdtemp())),
+            patch("system1_ops.manage.record", return_value=None),
+            patch("system1_ops.manage.port_listened", return_value=True),
+            patch("system1_ops.manage.untracked_instance", return_value={"status": "ok", "model": "laya"}),
+            patch("system1_ops.manage.listener_pids", return_value=[4242]),
+            patch("psutil.Process", return_value=fake),
+            redirect_stdout(printed),
+        ):
+            manage.stop("laya", item)
+        self.assertTrue(fake.terminated)
+        self.assertIn("stopped untracked PID=4242", printed.getvalue())
+
+    def test_stop_leaves_foreign_listener_alone(self):
+        from system1_ops import manage
+
+        printed = io.StringIO()
+        item = {"name": "laya", "host": "0.0.0.0", "port": 8882, "api_key_env": "SYSTEM1_API_KEY"}
+        with (
+            patch("system1_ops.manage.RUN", pathlib.Path(tempfile.mkdtemp())),
+            patch("system1_ops.manage.record", return_value=None),
+            patch("system1_ops.manage.port_listened", return_value=True),
+            patch("system1_ops.manage.untracked_instance", return_value=None),
+            patch("system1_ops.manage.listener_pids") as resolve,
+            patch("system1_ops.manage.terminate_tree") as kill,
+            redirect_stdout(printed),
+        ):
+            manage.stop("laya", item)
+        resolve.assert_not_called()
+        kill.assert_not_called()
+        self.assertIn("not running", printed.getvalue())
+
+    def test_stop_reports_when_listener_pid_is_unresolvable(self):
+        from system1_ops import manage
+
+        item = {"name": "laya", "host": "0.0.0.0", "port": 8882, "api_key_env": "SYSTEM1_API_KEY"}
+        with (
+            patch("system1_ops.manage.RUN", pathlib.Path(tempfile.mkdtemp())),
+            patch("system1_ops.manage.record", return_value=None),
+            patch("system1_ops.manage.port_listened", return_value=True),
+            patch("system1_ops.manage.untracked_instance", return_value={"model": "laya"}),
+            patch("system1_ops.manage.listener_pids", return_value=[]),
+        ):
+            with self.assertRaises(RuntimeError):
+                manage.stop("laya", item)
+
+    def test_start_reports_untracked_instance_without_preflight(self):
+        from system1_ops import manage
+
+        printed = io.StringIO()
+        item = {"name": "laya", "kind": "laya", "host": "0.0.0.0", "port": 8882}
+        with (
+            patch("system1_ops.manage.record", return_value=None),
+            patch("system1_ops.manage.port_listened", return_value=True),
+            patch("system1_ops.manage.untracked_instance", return_value={"model": "laya"}),
+            patch("system1_ops.manage.preflight") as guarded,
+            redirect_stdout(printed),
+        ):
+            manage.start(item, "unused.toml", wait=False)
+        guarded.assert_not_called()
+        self.assertIn("already running", printed.getvalue())
 
     def test_bootstrap_fresh_checkout_and_preserves_local_changes(self):
         from system1_ops import bootstrap

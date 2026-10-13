@@ -38,6 +38,10 @@ references:
 
 “http://localhost:8885/ 有bug, 修复一下, 点击三个检查,显示异常,但是其实正常,其实就是这三个模型占用了这三个端口（画面：laya/startlux-0.8b/startlux-4b 三卡均显示“已停止 · 端口 8882/8883/8884 被占用，可能有残留进程或其他服务”）”（2026-10-13）
 
+“c/proj/frameworks/system1-ops$ ./system1.sh dashboard stop → dashboard: not running；./system1.sh dashboard start → OSError: [Errno 98] Address already in use”（2026-10-13）
+
+“加：stop/重启 自动接管未纳管实例（推荐）——无有效记录但端口上 /health 回 model=<name>（确认是本项目实例）时，按端口反查 PID 并结束它；仅处理自身标识确认的进程，不动未知进程”（2026-10-13，接管能力范围确认）
+
 ## 提炼范围
 
 目标项目仅为本仓 System1 Ops。工程规范来源见标准快照 `standards/source.json`；不修改 dsh-agent-presets、上游模型源仓库或用户原始权重。目录和质量门禁重构复用已授权的维护、真机测试和公开推送范围。

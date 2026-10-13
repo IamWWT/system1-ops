@@ -22,7 +22,7 @@ from .common import (
     load_local_environment,
     preflight,
 )
-from .portable import file_lock, identity, probe_port, tail
+from .portable import file_lock, identity, listener_pids, port_listened, probe_port, tail
 
 RUN = STATE / "run"
 LOGS = STATE / "logs"
@@ -72,6 +72,10 @@ def start(item: Any, config_path: Any, wait: Any = True) -> Any:
     name = item["name"]
     if record(name):
         print(f"{name}: already running PID={record(name)['pid']}")
+        return
+    if port_listened(item["host"], item["port"]) and untracked_instance(item):
+        # 本模型实例已在服务，只是没有管理记录：不重复启动，也不抛端口占用的原始异常。
+        print(f"{name}: already running (no record) port={item['port']}; 用 stop 可接管该实例", flush=True)
         return
     native = preflight(item) if item["kind"] != "dashboard" else None
     # Fail before loading GBs of weights, but allow a stopped server's TIME_WAIT.
@@ -136,28 +140,62 @@ def start(item: Any, config_path: Any, wait: Any = True) -> Any:
     raise RuntimeError(f"{name}: readiness timed out; process remains running, inspect logs/status or stop it")
 
 
-def stop(name: Any) -> Any:
+def untracked_instance(item: Any) -> Any:
+    """Health payload when the port's occupant identifies as this exact model, else None.
+
+    Strict `model` equality keeps takeover limited to our own instances: a foreign
+    JSON service that answers /health without a model field must never match.
+    """
+    try:
+        payload = request(item)
+    except (OSError, ValueError, urllib.error.URLError):
+        return None
+    return payload if payload.get("model") == item["name"] else None
+
+
+def terminate_tree(pid: Any, starttime: Any = None) -> Any:
+    """Terminate a process and its children; escalate to kill while the identity persists."""
+    import psutil
+
+    try:
+        process = psutil.Process(pid)
+        children = process.children(recursive=True)
+    except psutil.NoSuchProcess:
+        return
+    moment = identity(pid) if starttime is None else starttime
+    process.terminate()
+    deadline = time.monotonic() + 30
+    while moment is not None and identity(pid) == moment and time.monotonic() < deadline:
+        time.sleep(0.2)
+    if moment is not None and identity(pid) == moment:
+        process.kill()
+    for child in children:
+        try:
+            child.terminate()
+            child.wait(timeout=5)
+        except psutil.TimeoutExpired:
+            child.kill()
+        except psutil.NoSuchProcess:
+            pass
+
+
+def stop(name: Any, item: Any = None) -> Any:
     value = record(name)
     if value:
-        import psutil
-
-        process = psutil.Process(value["pid"])
-        children = process.children(recursive=True)
-        process.terminate()
-        deadline = time.monotonic() + 30
-        while identity(value["pid"]) == value["starttime"] and time.monotonic() < deadline:
-            time.sleep(0.2)
-        if identity(value["pid"]) == value["starttime"]:
-            process.kill()
-        for child in children:
-            try:
-                child.terminate()
-                child.wait(timeout=5)
-            except psutil.TimeoutExpired:
-                child.kill()
-            except psutil.NoSuchProcess:
-                pass
+        terminate_tree(value["pid"], value["starttime"])
         print(f"{name}: stopped PID={value['pid']}")
+    elif item is not None and port_listened(item["host"], item["port"]) and untracked_instance(item):
+        # 端口被本模型自己的实例占用，但没有可用的管理记录（例如进程在本记录之外启动）：
+        # 按端口反查 PID 并接管，避免 stop/重启 静默失效。
+        pids = listener_pids(item["port"])
+        if not pids:
+            raise RuntimeError(
+                f"{name}: 端口 {item['port']} 上确认是本模型实例，但本进程无法解析它的 PID；"
+                f"请在该实例的宿主上手动结束它（如 ss -ltnp | grep {item['port']}）后重试"
+            )
+        for pid in pids:
+            terminate_tree(pid)
+        print(f"{name}: stopped untracked PID={','.join(str(pid) for pid in pids)} port={item['port']}")
     else:
         print(f"{name}: not running")
     (RUN / (name + ".json")).unlink(missing_ok=True)
@@ -221,7 +259,7 @@ def main() -> Any:
             if args.model in ("all", "start"):
                 start(item, args.config.resolve(), not args.no_wait)
             elif args.model == "stop":
-                stop("dashboard")
+                stop("dashboard", item)
             elif args.model == "status":
                 print(json.dumps({"process": record("dashboard")}))
             else:
@@ -267,7 +305,7 @@ def main() -> Any:
                                         print(f"== {path} ==\n{value}", flush=True)
                                         previous[path] = value
                 elif args.command in ("stop", "restart"):
-                    stop(name)
+                    stop(name, item)
                     if args.command == "restart":
                         start(item, args.config.resolve(), not args.no_wait)
                 elif args.command == "start":

@@ -31,7 +31,7 @@ R1–R10定义见[[01-requirements/BRD-system1_U_0.3.0]]。Jev客户端是下游
 | R8 性能保真 | benchmark、native | NFTR固定数据与公开samples；本轮不改变推理数学逻辑 |
 | R9 组织与规范 | docs/layout/index_files | test_docs、test_layout；FILE_INDEX和模式docs-audit |
 | R10 可复现门禁 | uv.lock、quality_gate、artifact_check/archive_release | Linux/Windows CI、版本归档与SHA256 |
-| R11 运维台状态检查 | dashboard `/ops/models/{name}/check`、`/ops/state`（unmanaged）、web app.js | test_extended check/state 用例、真实8885页面与切换流程；占用者身份判别（自身实例/其它模型/外来进程）真实三例 |
+| R11 运维台状态检查 | dashboard `/ops/models/{name}/check`、`/ops/state`（unmanaged）、web app.js、manage.stop/start 接管 | test_extended check/state 用例、真实8885页面与切换流程；占用者身份判别（自身实例/其它模型/外来进程）真实三例；接管与误杀防护真实两例（自身实例被结束、外来占用者不动） |
 | L1 干净目录 | STATE统一、scripts与.local | test_layout外部state/旧配置选择、真实根目录/配置读回 |
 | L2 工作流程 | PP/GAP/CLM/DRR/SESSION/baselines | doc_check强制记录、关口表与会话三同步 |
 

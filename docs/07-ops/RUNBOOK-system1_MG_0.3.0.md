@@ -70,7 +70,7 @@ $env:SYSTEM1_NATIVE_BINARY = "$PWD\.local\vendor\llama.cpp\build-cpu\bin\Release
 ./system1.sh dashboard stop
 ```
 
-start等待预检/预加载warm-up/健康；--no-wait只建进程。preload=false按需加载，空闲卸载不停止HTTP。PID和创建时间匹配才停止，进程异常无自动重启；systemd/Task Scheduler可由用户部署场景接管。
+start等待预检/预加载warm-up/健康；--no-wait只建进程。preload=false按需加载，空闲卸载不停止HTTP。有管理记录时按PID+创建时间匹配停止；**无可用记录但配置端口上确认是本模型实例**（`/health` 精确回 `model=<本模型>`）时，stop/restart 会按端口反查监听PID并接管该实例，start 则报告“already running (no record)”而不重复启动；`/health` 未标明本模型时一律不动，绝不接管非项目进程。进程异常无自动重启；systemd/Task Scheduler可由用户部署场景接管。
 
 ## 故障与证据
 
@@ -81,7 +81,9 @@ start等待预检/预加载warm-up/健康；--no-wait只建进程。preload=fals
 | torch_cuda=False但native为CUDA | 原生GPU独立于Python torch构建；核对native日志实际层放置 |
 | 503/504 | 请求忙/超时，计算可能仍占锁；用health/busy核实后退避 |
 | 模型API失败 | 用x-request-id/x-typesafe-request-id查JSON日志与完整exception |
-| 端口占用 | 先查实际listener；manager不会覆盖非项目进程，POSIX允许停止服务TIME_WAIT重用 |
+| 端口占用 | 先查实际listener（`ss -ltnp \| grep <端口>`）；是本项目实例则 `./system1.sh stop <模型>` 或 `stop all` 接管（无记录也能按端口反查PID结束）；非项目进程manager不覆盖，POSIX允许停止服务TIME_WAIT重用 |
+| 停止报 not running 但端口仍监听 | 该实例没有可用管理记录：确认是本项目实例后用stop/restart接管；若提示无法解析PID（跨进程命名空间等），在该实例宿主上按端口手动结束再启动 |
+| dashboard start 报地址被占用 | 旧运维台未被记录跟踪：`./system1.sh dashboard stop`（现可接管）后再 `dashboard start`；必要时手动结束后重试 |
 
 JSON日志在.local/logs/<model>.log、dashboard.log；依赖启动在.console.log，原生输出在.native.log。异常堆栈保存完整。管理HTTP审计记录actor/client/path/status/latency与request_id，不打印认证token。原生日志按重新加载时大小轮转。
 

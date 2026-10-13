@@ -142,7 +142,7 @@ async function runCheck(name) {
       detail = data.reachable && data.health
         ? `运行中 · ${healthText(data.health)}`
         : `进程 ${data.pid} 在运行，但健康检查未通过：${data.error || "无响应"}`;
-    } else if (data.unmanaged && data.health) detail = `运行中（未纳入管理记录，本页无法停止）· ${healthText(data.health)}`;
+    } else if (data.unmanaged && data.health) detail = `运行中（未纳入管理记录，停止/重启会按端口接管该实例）· ${healthText(data.health)}`;
     else if (data.port_in_use) detail = `已停止 · 端口 ${data.port} 被占用，可能有残留进程或其他服务`;
     else if (data.error) detail = `已停止 · 预检失败：${data.error}`;
     else detail = `已停止 · 端口 ${data.port} 空闲 · 预检通过，可启动`;

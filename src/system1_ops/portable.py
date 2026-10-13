@@ -46,6 +46,26 @@ def identity(pid: int) -> float | None:
         return None
 
 
+def listener_pids(port: int) -> list[int]:
+    """PIDs listening on `port` in this process namespace; empty when they cannot be resolved."""
+    import psutil
+
+    try:
+        connections = psutil.net_connections(kind="inet")
+    except (psutil.AccessDenied, OSError):
+        return []
+    return sorted(
+        {
+            connection.pid
+            for connection in connections
+            if connection.status == psutil.CONN_LISTEN
+            and connection.laddr
+            and connection.laddr.port == port
+            and connection.pid
+        }
+    )
+
+
 @contextmanager
 def file_lock(path: Any) -> Any:
     path.parent.mkdir(parents=True, exist_ok=True)
